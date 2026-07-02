@@ -41,14 +41,24 @@ class GroupCoordinatorPatch(GroupCoordinator):
 
         self.rank = torch.distributed.get_rank()
         self.local_rank = local_rank
+        self.group_ranks = group_ranks
+        self.group_name = group_name
+        self.backend = str(torch_distributed_backend)
 
         self_device_group = None
         self_cpu_group = None
-        hccl_pg_options = create_hccl_pg_options(group_name)
 
-        for ranks in group_ranks:
+        for ranks in self.group_ranks:
+            # ZBAL backend does not use HCCL pg_options; passing
+            # ProcessGroupHCCL.Options would be incorrect.
+            if self.backend == "zbal":
+                hccl_pg_options = None
+            else:
+                hccl_pg_options = create_hccl_pg_options(self.group_name)
             device_group = torch.distributed.new_group(
-                ranks, backend=torch_distributed_backend, pg_options=hccl_pg_options
+                ranks,
+                backend=self.backend,
+                pg_options=hccl_pg_options,
             )
 
             # a group with `gloo` backend, to allow direct coordination between

@@ -109,6 +109,14 @@ env_variables: dict[str, Callable[[], Any]] = {
     "VLLM_ASCEND_FUSION_OP_TRANSPOSE_KV_CACHE_BY_BLOCK": lambda: bool(
         int(os.getenv("VLLM_ASCEND_FUSION_OP_TRANSPOSE_KV_CACHE_BY_BLOCK", "1"))
     ),
+    # ZBAL (Zero Buffer Accelerate Library): NPU-specific communication acceleration
+    # library based on memfabric for unified HBM memory pooling and AIV-driven MTE
+    # operator acceleration. Set to positive value (MB) to enable zbal.
+    # 0 (default): disabled, uses standard HCCL backend.
+    "VLLM_ASCEND_ZBAL_LOCAL_MEM_SIZE": lambda: int(os.getenv("VLLM_ASCEND_ZBAL_LOCAL_MEM_SIZE", "0")),
+    # Optional bootstrap URL for multi-node zbal initialization.
+    # If not set, zbal derives the address from MASTER_ADDR/MASTER_PORT.
+    "VLLM_ASCEND_ZBAL_BOOTSTRAP_URL": lambda: os.getenv("VLLM_ASCEND_ZBAL_BOOTSTRAP_URL", ""),
 }
 
 # end-env-vars-definition
