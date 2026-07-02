@@ -29,7 +29,9 @@ class MemcacheBackend(Backend):
             ) from e
         try:
             soc_version = get_ascend_device_type()
-            if soc_version in {AscendDeviceType.A2}:
+            from vllm_ascend.distributed.zbal_utils import is_zbal_enabled
+
+            if soc_version in {AscendDeviceType.A2} and not is_zbal_enabled():
                 tmp_tensor = torch.zeros(1, device="npu")
                 output_tensor_list = [torch.empty_like(tmp_tensor) for _ in range(torch.distributed.get_world_size())]
                 torch.distributed.all_gather(output_tensor_list, tmp_tensor, group=get_world_group().device_group)
