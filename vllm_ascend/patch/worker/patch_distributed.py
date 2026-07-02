@@ -113,9 +113,45 @@ class GroupCoordinatorPatch(GroupCoordinator):
 
         self.rank = torch.distributed.get_rank()
         self.local_rank = local_rank
-        self.backend = _normalize_backend(torch_distributed_backend)
         self._acquired_hccl_keys = []
         self._unshared_hccl_groups = []
+        self.group_ranks = group_ranks
+        self.group_name = group_name
+        self.backend = str(torch_distributed_backend)
+
+        self_device_group = None
+        self_cpu_group = None
+
+        for ranks in self.group_ranks:
+            # ZBAL backend does not use HCCL pg_options; passing
+            # ProcessGroupHCCL.Options would be incorrect.
+            if self.backend == "zbal":
+                hccl_pg_options = None
+            else:
+                hccl_pg_options = create_hccl_pg_options(self.group_name)
+            device_group = torch.distributed.new_group(
+                ranks,
+                backend=self.backend,
+                pg_options=hccl_pg_options,
+            )
+
+            # a group with `gloo` backend, to allow direct coordination between
+            # processes through the CPU.
+            cpu_group = torch.distributed.new_group(ranks, backend="gloo")
+            if self.rank in ranks:
+                self.ranks = ranks
+                self.world_size = len(ranks)
+                self.rank_in_group = ranks.index(self.rank)
+                self_device_group = device_group
+                self_cpu_group = cpu_group
+
+        assert self_cpu_group is not None
+        assert self_device_group is not None
+
+        self.cpu_group = self_cpu_group
+        self.device_group = self_device_group
+        self.device = torch.npu.current_device()
+
         self.use_device_communicator = use_device_communicator
         self.device_communicator = None
         self.mq_broadcaster = None

@@ -60,6 +60,12 @@ from vllm_ascend.batch_invariant import init_batch_invariance
 from vllm_ascend.cpu_binding import bind_cpus
 from vllm_ascend.device_allocator.camem import CaMemAllocator
 from vllm_ascend.distributed.parallel_state import init_ascend_model_parallel
+from vllm_ascend.distributed.zbal_utils import (
+    get_dist_backend,
+    init_zbal,
+    is_zbal_enabled,
+    lazy_init_zbal_gva_mem,
+)
 from vllm_ascend.ops.triton.triton_utils import init_device_properties_triton
 from vllm_ascend.profiler.torch_npu_profiler import TorchNPUProfilerWrapper
 from vllm_ascend.utils import (
@@ -97,6 +103,9 @@ class NPUWorker(WorkerBase):
         **kwargs,
     ):
         """Initialize the worker for Ascend."""
+        if is_zbal_enabled():
+            init_zbal(vllm_config.parallel_config.world_size, local_rank, rank)
+
         if not envs_ascend.COMPILE_CUSTOM_KERNELS:
             logger.warning(
                 "COMPILE_CUSTOM_KERNELS is set to False. "
@@ -470,6 +479,23 @@ class NPUWorker(WorkerBase):
         bytes.
         """
         GiB = lambda b: b / GiB_bytes
+        if is_zbal_enabled():
+            from zbal import is_mix_alloc
+
+            if is_mix_alloc():
+                free, total = torch.npu.mem_get_info()
+                pool_bytes = envs_ascend.VLLM_ASCEND_ZBAL_LOCAL_MEM_SIZE * 1024**2
+                effective_total = min(pool_bytes, total)
+                requested = int(effective_total * self.cache_config.gpu_memory_utilization)
+                self.available_kv_cache_memory_bytes = max(
+                    requested - (total - free), 0,
+                )
+                logger.info_once(
+                    "Available KV cache memory: %.2f GiB",
+                    GiB(self.available_kv_cache_memory_bytes),
+                    scope="local",
+                )
+                return self.available_kv_cache_memory_bytes
 
         # Fast path: user has explicitly specified KV cache size via
         # --kv-cache-memory. Still run profile_run() to compile the model,
@@ -908,7 +934,6 @@ class NPUWorker(WorkerBase):
 
     def initialize_from_config(self, kv_cache_config: KVCacheConfig) -> None:
         """Allocate NPU KV cache with the specified kv_cache_config."""
-        ensure_kv_transfer_initialized(self.vllm_config, kv_cache_config)
         if self.vllm_config.model_config.enable_sleep_mode:
             allocator = CaMemAllocator.get_instance()
             context = allocator.use_memory_pool(tag="kv_cache")
@@ -919,17 +944,15 @@ class NPUWorker(WorkerBase):
         with context:
             self.model_runner.initialize_kv_cache(kv_cache_config)
 
-            # Build KV-zero metadata outside the CuMem pool so the bookkeeping
-            # GPU tensors (seg_addrs, block-id buffers) use the standard PyTorch
-            # allocator and are not discarded during sleep/wake cycles.
-            if (
-                kv_cache_config.needs_kv_cache_zeroing
-                and hasattr(self.model_runner, "_init_kv_zero_meta")
-                and self.vllm_config is not None
-                and self.vllm_config.speculative_config is not None
-                and self.vllm_config.speculative_config.num_speculative_tokens > 1
-            ):
-                self.model_runner._init_kv_zero_meta()
+        if is_zbal_enabled():
+            from zbal import is_mix_alloc
+
+            if is_mix_alloc():
+                lazy_init_zbal_gva_mem(
+                    self.device, self.local_rank, self.rank,
+                    self.parallel_config.world_size,
+                )
+                self.model_runner.profile_run()
 
     def profile(self, is_start: bool = True, profile_prefix: str | None = None):
         # Check if profiling is enabled (RFC #6954 - align with upstream vLLM)
@@ -983,8 +1006,11 @@ class NPUWorker(WorkerBase):
     def _init_worker_distributed_environment(self) -> None:
         """Initialize the distributed environment."""
         init_batch_invariance()
+
+        backend = get_dist_backend()
+        logger.info("Using distributed backend: %s", backend)
         init_distributed_environment(
-            self.parallel_config.world_size, self.rank, self.distributed_init_method, self.local_rank, "hccl"
+            self.parallel_config.world_size, self.rank, self.distributed_init_method, self.local_rank, backend
         )
         ensure_model_parallel_initialized(
             self.parallel_config.tensor_parallel_size,
