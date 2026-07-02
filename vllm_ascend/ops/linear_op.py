@@ -67,6 +67,7 @@ from vllm_ascend.distributed.parallel_state import (
     get_mlp_tp_group,
     get_otp_group,
 )
+from vllm_ascend.distributed.zbal_utils import get_comm_name_from_group
 from vllm_ascend.ops.flashcomm2_oshard_manager import flashcomm2_oshard_manager
 from vllm_ascend.utils import (
     enable_dsa_cp,
@@ -407,16 +408,16 @@ class MatmulAllreduceRowParallelOp(CustomRowParallelOp):
 
     @classmethod
     def get_hcomm_info(cls, group: ProcessGroup) -> str:
-        """Get the HCCL communication information for the given group."""
+        """Get the HCCL/ZBAL communication information for the given group."""
         if cls._HCOMM_INFO is not None:
             return cls._HCOMM_INFO
 
         rank = torch.distributed.get_rank(group)
         if torch.__version__ > "2.0":
             global_rank = torch.distributed.get_global_rank(group, rank)
-            cls._HCOMM_INFO = group._get_backend(torch.device("npu")).get_hccl_comm_name(global_rank)
+            cls._HCOMM_INFO = get_comm_name_from_group(group, rank=global_rank)
         else:
-            cls._HCOMM_INFO = group.get_hccl_comm_name(rank)
+            cls._HCOMM_INFO = get_comm_name_from_group(group, rank=rank)
         return cls._HCOMM_INFO
 
 
@@ -518,7 +519,7 @@ class SequenceRowParallelOp(CustomRowParallelOp):
 
         world_size = self.layer.tp_size
         comm_mode = "aiv"
-        hcom_name = get_tp_group().device_group._get_backend(torch.device("npu")).get_hccl_comm_name(self.layer.tp_rank)
+        hcom_name = get_comm_name_from_group(get_tp_group().device_group, rank=self.layer.tp_rank)
 
         from vllm.model_executor.layers.linear import UnquantizedLinearMethod
 
