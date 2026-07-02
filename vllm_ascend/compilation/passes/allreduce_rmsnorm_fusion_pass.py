@@ -24,6 +24,7 @@ from vllm.distributed.parallel_state import get_tp_group
 from vllm.logger import logger
 
 from vllm_ascend.compilation.passes.base_pattern import BasePattern
+from vllm_ascend.distributed.zbal_utils import get_comm_name_from_group
 
 # computation-communication tiling block is 512
 ALLREDUCE_NORM_FUSE_THRESHOLD = 512
@@ -39,9 +40,8 @@ class MiddleLayerMatmulAllReduceAddRMSNormPattern(BasePattern):
         self.vllm_config = vllm_config
         self.eps = eps
         device_group = get_tp_group().device_group
-        backend = device_group._get_backend(torch.device("npu"))
         self.local_rank = torch.distributed.get_rank(group=device_group)
-        self.tp_group_name = backend.get_hccl_comm_name(self.local_rank)
+        self.tp_group_name = get_comm_name_from_group(device_group)
         self.tp_size = get_tensor_model_parallel_world_size()
 
     def get_inputs(self):
@@ -88,9 +88,8 @@ class LastLayerMatmulAllReduceAddRMSNormPattern(BasePattern):
     def __init__(self, vllm_config, eps=1e-6):
         super().__init__(vllm_config, eps)
         device_group = get_tp_group().device_group
-        backend = device_group._get_backend(torch.device("npu"))
         self.local_rank = torch.distributed.get_rank(group=device_group)
-        self.tp_group_name = backend.get_hccl_comm_name(self.local_rank)
+        self.tp_group_name = get_comm_name_from_group(device_group)
         self.tp_size = get_tensor_model_parallel_world_size()
 
     def get_inputs(self):
