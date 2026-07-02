@@ -32,6 +32,7 @@ from vllm_ascend.ascend_config import get_ascend_config
 from vllm_ascend.ascend_forward_context import get_mc2_tokens_capacity
 from vllm_ascend.device.device_op import DeviceOperator
 from vllm_ascend.distributed.parallel_state import get_mc2_group
+from vllm_ascend.distributed.zbal_utils import get_comm_name_from_group
 from vllm_ascend.ops.fused_moe.comm_utils import async_all_to_all, gather_from_sequence_parallel_region
 from vllm_ascend.ops.fused_moe.moe_runtime_args import (
     MoEAllGatherCombineMetadata,
@@ -103,10 +104,7 @@ class TokenDispatcherWithMC2(MoETokenDispatcher[MoEMC2CombineMetadata]):
     def __init__(self, **kwargs):
         super().__init__(**kwargs)
         device_group = get_mc2_group().device_group
-        # TODO: Try local_rank = ep_group.rank_in_group
-        local_rank = torch.distributed.get_rank(group=device_group)
-        backend = device_group._get_backend(torch.device("npu"))
-        self.moe_all_to_all_group_name = backend.get_hccl_comm_name(local_rank)
+        self.moe_all_to_all_group_name = get_comm_name_from_group(device_group)
         self.ep_rank_id = get_mc2_group().rank_in_group
         self.ep_world_size = get_mc2_group().world_size
         self.enable_dispatch_v2 = hasattr(torch_npu, "npu_moe_distribute_dispatch_v2")
@@ -465,10 +463,7 @@ class TokenDispatcherWithAll2AllV(MoETokenDispatcher[MoEAllToAllCombineMetadata]
                 "local_expert_indices must be continuous"
             )
 
-        # TODO: Try local_rank = ep_group.rank_in_group
-        local_rank = torch.distributed.get_rank(group=self.ep_group)
-        backend = self.ep_group._get_backend(torch.device("npu"))
-        self.moe_all_to_all_group_name = backend.get_hccl_comm_name(local_rank)
+        self.moe_all_to_all_group_name = get_comm_name_from_group(self.ep_group)
 
     def token_dispatch(
         self,

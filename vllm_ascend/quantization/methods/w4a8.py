@@ -27,6 +27,7 @@ from vllm.distributed import get_tensor_model_parallel_world_size
 from vllm_ascend.ascend_config import get_ascend_config
 from vllm_ascend.ascend_forward_context import _EXTRA_CTX
 from vllm_ascend.distributed.parallel_state import get_mc2_group
+from vllm_ascend.distributed.zbal_utils import get_comm_name_from_group
 from vllm_ascend.ops.fused_moe.experts_selector import select_experts
 from vllm_ascend.ops.fused_moe.moe_runtime_args import build_fused_experts_input
 from vllm_ascend.utils import COMPRESSED_TENSORS_METHOD, maybe_trans_nz
@@ -368,10 +369,7 @@ class AscendW4A8DynamicFusedMoEMethod(AscendMoEScheme):
 
         try:
             device_group = get_mc2_group().device_group
-            # TODO: Try local_rank = ep_group.rank_in_group
-            local_rank = torch.distributed.get_rank(group=device_group)
-            backend = device_group._get_backend(torch.device("npu"))
-            self.moe_all_to_all_group_name = backend.get_hccl_comm_name(local_rank)
+            self.moe_all_to_all_group_name = get_comm_name_from_group(device_group)
         except AttributeError:
             self.moe_all_to_all_group_name = ""
 

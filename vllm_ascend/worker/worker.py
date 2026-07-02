@@ -62,6 +62,13 @@ from vllm_ascend.cpu_binding import bind_cpus
 from vllm_ascend.device_allocator.camem import CaMemAllocator
 from vllm_ascend.device_allocator.sleep_mem_optimized import SleepWakeupManager
 from vllm_ascend.distributed.parallel_state import init_ascend_model_parallel
+from vllm_ascend.distributed.zbal_utils import (
+    get_dist_backend,
+    init_zbal,
+    is_gva_inited,
+    is_zbal_enabled,
+    lazy_init_zbal_gva_mem,
+)
 from vllm_ascend.ops.triton.triton_utils import init_device_properties_triton
 from vllm_ascend.profiler.torch_npu_profiler import TorchNPUProfilerWrapper
 from vllm_ascend.utils import (
@@ -99,6 +106,9 @@ class NPUWorker(WorkerBase):
         **kwargs,
     ):
         """Initialize the worker for Ascend."""
+        if is_zbal_enabled():
+            init_zbal(vllm_config.parallel_config.world_size, local_rank, rank)
+
         if not envs_ascend.COMPILE_CUSTOM_KERNELS:
             logger.warning(
                 "COMPILE_CUSTOM_KERNELS is set to False. "
@@ -555,6 +565,29 @@ class NPUWorker(WorkerBase):
             )
             return kv_cache_memory_bytes
 
+        # zbal mix-alloc mode: profile_run() would execute the model before the
+        # GVA heap is bootstrapped (lazy_init_zbal_gva_mem runs later from
+        # initialize_from_config). Running the model on zbal-allocated memory
+        # before zbal_init triggers "ub address out of bounds" in aclnnRmsNorm.
+        # Skip profiling and compute KV cache budget conservatively instead.
+        if is_zbal_enabled() and not is_gva_inited():
+            from zbal import is_mix_alloc
+
+            if is_mix_alloc():
+                free, total = torch.npu.mem_get_info()
+                pool_bytes = envs_ascend.VLLM_ASCEND_ZBAL_LOCAL_MEM_SIZE * 1024**2
+                effective_total = min(pool_bytes, total)
+                requested = int(effective_total * self.cache_config.gpu_memory_utilization)
+                self.available_kv_cache_memory_bytes = max(
+                    requested - (total - free), 0,
+                )
+                logger.info_once(
+                    "Available KV cache memory: %.2f GiB",
+                    GiB(self.available_kv_cache_memory_bytes),
+                    scope="local",
+                )
+                return self.available_kv_cache_memory_bytes
+
         # Execute a forward pass with dummy inputs to profile the memory usage
         # of the model.
         with memory_profiling(
@@ -980,6 +1013,7 @@ class NPUWorker(WorkerBase):
     def initialize_from_config(self, kv_cache_config: KVCacheConfig) -> None:
         """Allocate NPU KV cache with the specified kv_cache_config."""
         ensure_kv_transfer_initialized(self.vllm_config, kv_cache_config)
+
         if self.vllm_config.model_config.enable_sleep_mode:
             allocator = CaMemAllocator.get_instance()
             context = allocator.use_memory_pool(tag="kv_cache")
@@ -1009,6 +1043,26 @@ class NPUWorker(WorkerBase):
                 and self.vllm_config.speculative_config.num_speculative_tokens > 1
             ):
                 self.model_runner._init_kv_zero_meta()
+
+        # zbal mix-alloc: bootstrap the GVA heap now that KV cache is allocated.
+        # GVA = pool - used (weights + KV cache + activations), so zbal_init
+        # must run AFTER initialize_kv_cache. Also run profile_run() since it
+        # was skipped in determine_available_memory (running it before zbal_init
+        # would trigger "ub address out of bounds" in aclnnRmsNorm).
+        if is_zbal_enabled() and not is_gva_inited():
+            from zbal import is_mix_alloc
+
+            if is_mix_alloc():
+                from vllm.distributed.parallel_state import get_world_group
+
+                lazy_init_zbal_gva_mem(
+                    self.device,
+                    self.local_rank,
+                    self.rank,
+                    self.parallel_config.world_size,
+                    cpu_group=get_world_group().cpu_group,
+                )
+                self.model_runner.profile_run()
 
     def profile(self, is_start: bool = True, profile_prefix: str | None = None):
         # Check if profiling is enabled (RFC #6954 - align with upstream vLLM)
@@ -1062,8 +1116,11 @@ class NPUWorker(WorkerBase):
     def _init_worker_distributed_environment(self) -> None:
         """Initialize the distributed environment."""
         init_batch_invariance()
+
+        backend = get_dist_backend()
+        logger.info("Using distributed backend: %s", backend)
         init_distributed_environment(
-            self.parallel_config.world_size, self.rank, self.distributed_init_method, self.local_rank, "hccl"
+            self.parallel_config.world_size, self.rank, self.distributed_init_method, self.local_rank, backend
         )
         ensure_model_parallel_initialized(
             self.parallel_config.tensor_parallel_size,
