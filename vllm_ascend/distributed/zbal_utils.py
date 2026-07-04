@@ -93,7 +93,14 @@ def lazy_init_zbal_gva_mem(
     gva_bytes = gva_bytes - (gva_bytes % 0x200000)
     logger.info("[ZBAL] rank %s GVA: %d MiB", world_rank, gva_bytes // (1024**2))
 
+    import os
     from zbal.zbal import ZBALBootstrapOption, ZBALBootstrapType, zbal_bootstrap
+
+    if "MEMFABRIC_HYBRID_LIBRARY_PATH" not in os.environ:
+        import memfabric_hybrid as mf
+        lib_path = mf.get_lib_path()
+        if lib_path:
+            os.environ["MEMFABRIC_HYBRID_LIBRARY_PATH"] = lib_path
 
     opt = ZBALBootstrapOption()
     opt.btType = ZBALBootstrapType.BOOT_BY_MEMFABRIC
