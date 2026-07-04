@@ -166,30 +166,27 @@ def _patch_npu_mem_get_info():
 
 
 def _patch_memory_stats_for_mix_alloc():
-    """Wrap torch.accelerator memory APIs for mix-alloc
-    (get_device_stats not supported)."""
-    _orig_stats = torch.accelerator.memory_stats
-    _orig_reserved = torch.accelerator.memory_reserved
+    """Patch _npu_memoryStats at C level for mix-alloc
+    (get_device_stats not supported).  All Python memory APIs
+    (memory_stats, memory_reserved, max_memory_allocated, etc.)
+    eventually call this single C function."""
+    try:
+        import torch_npu._C
+    except ImportError:
+        return
 
-    def _safe_stats(device=None):
+    _orig = torch_npu._C._npu_memoryStats
+
+    def _safe(device=None):
         try:
-            return _orig_stats(device)
+            return _orig(device)
         except RuntimeError as e:
             if "do not support get_device_stats" in str(e):
                 return {}
             raise
 
-    def _safe_reserved(device=None):
-        try:
-            return _orig_reserved(device)
-        except RuntimeError as e:
-            if "do not support get_device_stats" in str(e):
-                return 0
-            raise
-
-    torch.accelerator.memory_stats = _safe_stats
-    torch.accelerator.memory_reserved = _safe_reserved
-    logger.info("[ZBAL] patched torch.accelerator memory APIs for mix-alloc")
+    torch_npu._C._npu_memoryStats = _safe
+    logger.info("[ZBAL] patched _npu_memoryStats for mix-alloc")
 
 
 def get_comm_name_from_group(
