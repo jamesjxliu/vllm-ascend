@@ -37,11 +37,12 @@ def init_zbal(
         return 1
 
     global _gva_is_inited, _original_npu_mem_get_info
-    from zbal import is_mix_alloc, switch_to_allocator, zbal_init
+    from zbal import is_mix_alloc, zbal_init
 
     if is_mix_alloc():
-        switch_to_allocator()
-        _patch_memory_stats_for_mix_alloc()
+        # Keep native allocator — zbal SMA returns misaligned memory
+        # for AICORE kernels on this CANN/torch_npu version.
+        # Only bootstrap fabric in lazy_init_zbal_gva_mem.
         return 1
 
     bootstrap_url = envs_ascend.VLLM_ASCEND_ZBAL_BOOTSTRAP_URL
@@ -78,45 +79,38 @@ def lazy_init_zbal_gva_mem(
 
     Must be called after KV cache allocation so GVA = pool − used.
     """
-    from zbal import is_mix_alloc, zbal_init
+    from zbal import is_mix_alloc
 
     if not is_mix_alloc():
-        logger.info("lazy init only for mix-alloc mode, skipping")
         return 1
 
     global _gva_is_inited
-
-    total_memory_gb = 61.2
-    free_gpu_memory_gb = _get_available_gpu_memory_gb(
-        device, gpu_id,
-        distributed=world_size > 1,
-        cpu_group=cpu_group,
-        empty_cache=True,
-    )
-    used_memory_gb = total_memory_gb - free_gpu_memory_gb
-    gva_in_mb = envs_ascend.VLLM_ASCEND_ZBAL_LOCAL_MEM_SIZE - int(used_memory_gb * 1024)
-    gva_in_mb = gva_in_mb - gva_in_mb % 128
-    logger.info("[ZBAL] rank %s GVA: %s MB", world_rank, gva_in_mb)
-
     assert not _gva_is_inited, "zbal gva already initialized"
 
-    bootstrap_url = envs_ascend.VLLM_ASCEND_ZBAL_BOOTSTRAP_URL
-    if bootstrap_url:
-        res = zbal_init(
-            world_size, gpu_id, world_rank,
-            gva_in_mb * (1024**2), ip_port=bootstrap_url,
-        )
-    else:
-        res = zbal_init(
-            world_size, gpu_id, world_rank,
-            gva_in_mb * (1024**2),
-        )
-    _gva_is_inited = True
+    free_bytes, total_bytes = torch.npu.mem_get_info()
+    pool_bytes = envs_ascend.VLLM_ASCEND_ZBAL_LOCAL_MEM_SIZE * 1024**2
+    gva_bytes = max(pool_bytes - (total_bytes - free_bytes), 128 * 1024**2)
+    gva_bytes = gva_bytes - (gva_bytes % 0x200000)
+    logger.info("[ZBAL] rank %s GVA: %d MiB", world_rank, gva_bytes // (1024**2))
 
-    if do_check and not res:
-        logger.error("[ZBAL] zbal lazy init failed!")
+    from zbal.zbal import ZBALBootstrapOption, ZBALBootstrapType, zbal_bootstrap
+
+    opt = ZBALBootstrapOption()
+    opt.btType = ZBALBootstrapType.BOOT_BY_MEMFABRIC
+    opt.worldSize = world_size
+    opt.rankId = world_rank
+    opt.deviceId = gpu_id
+    opt.deviceMemorySize = gva_bytes
+    opt.commMetaSpaceSize = 1024
+    opt.commGroupCap = 64
+    opt.ipPort = envs_ascend.VLLM_ASCEND_ZBAL_BOOTSTRAP_URL or "tcp://127.0.0.1:6789"
+
+    ret = zbal_bootstrap(opt)
+    _gva_is_inited = True
+    if do_check and ret != 0:
+        logger.error("[ZBAL] zbal bootstrap failed!")
         sys.exit(-1)
-    return res
+    return 0 if ret != 0 else 1
 
 
 def _get_available_gpu_memory_gb(
