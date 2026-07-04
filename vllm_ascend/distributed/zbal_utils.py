@@ -166,13 +166,13 @@ def _patch_npu_mem_get_info():
 
 
 def _patch_memory_stats_for_mix_alloc():
-    """Wrap memory_stats_as_nested_dict for mix-alloc (get_device_stats not supported)."""
+    """Wrap memory_stats for mix-alloc (get_device_stats not supported)."""
     try:
         import torch_npu
     except ImportError:
         return
 
-    _orig = torch_npu.npu.memory.memory_stats_as_nested_dict
+    _orig = torch_npu.npu.memory.memory_stats
 
     def _patched(device=None):
         try:
@@ -182,8 +182,9 @@ def _patch_memory_stats_for_mix_alloc():
                 return {}
             raise
 
-    torch_npu.npu.memory.memory_stats_as_nested_dict = _patched
-    logger.info("[ZBAL] patched memory_stats_as_nested_dict for mix-alloc")
+    torch_npu.npu.memory.memory_stats = _patched
+    torch.accelerator.memory_stats = _patched
+    logger.info("[ZBAL] patched memory_stats for mix-alloc")
 
 
 def get_comm_name_from_group(

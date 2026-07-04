@@ -103,9 +103,6 @@ class NPUWorker(WorkerBase):
         **kwargs,
     ):
         """Initialize the worker for Ascend."""
-        if is_zbal_enabled():
-            init_zbal(vllm_config.parallel_config.world_size, local_rank, rank)
-
         if not envs_ascend.COMPILE_CUSTOM_KERNELS:
             logger.warning(
                 "COMPILE_CUSTOM_KERNELS is set to False. "
@@ -116,6 +113,11 @@ class NPUWorker(WorkerBase):
         from vllm_ascend.utils import adapt_patch
 
         adapt_patch()
+
+        # ZBAL must be after adapt_patch (which sets torch.accelerator.*)
+        # but before any NPU allocation (custom ops, ATB extensions).
+        if is_zbal_enabled():
+            init_zbal(vllm_config.parallel_config.world_size, local_rank, rank)
 
         # Register ops when worker init.
         from vllm_ascend import ops
