@@ -773,6 +773,17 @@ class NPUWorker(WorkerBase):
                 if not any(x in compile_range for x in all_sizes):
                     warmup_sizes.append(compile_range.end)
 
+        if is_zbal_enabled():
+            from zbal import is_mix_alloc
+            from vllm_ascend.distributed.zbal_utils import _gva_is_inited
+
+            if is_mix_alloc() and not _gva_is_inited:
+                logger.info(
+                    "[ZBAL] Skipping compile_or_warm_up_model in mix-alloc mode "
+                    "before GVA init. Model will compile lazily on first forward."
+                )
+                return CompilationTimes()
+
         for size in sorted(warmup_sizes, reverse=True):
             logger.info("Compile and warming up model for size %d", size)
             self.model_runner._dummy_run(size)
@@ -1008,6 +1019,33 @@ class NPUWorker(WorkerBase):
                     self.parallel_config.world_size,
                     cpu_group=get_world_group().cpu_group,
                 )
+
+                self._compile_after_zbal_init()
+
+    def _compile_after_zbal_init(self):
+        warmup_sizes = (self.vllm_config.compilation_config.compile_sizes or []).copy()
+        if not self.model_config.enforce_eager:
+            cg_capture_sizes: list[int] = []
+            if self.vllm_config.compilation_config.cudagraph_mode != CUDAGraphMode.NONE:
+                cg_sizes = self.vllm_config.compilation_config.cudagraph_capture_sizes
+                cg_capture_sizes = [] if cg_sizes is None else cg_sizes
+                warmup_sizes = [x for x in warmup_sizes if x not in cg_capture_sizes]
+
+            compile_ranges = self.vllm_config.compilation_config.get_compile_ranges()
+            all_sizes = set(cg_capture_sizes)
+            all_sizes.update([x for x in warmup_sizes if isinstance(x, int)])
+            for compile_range in compile_ranges:
+                if not any(x in compile_range for x in all_sizes):
+                    warmup_sizes.append(compile_range.end)
+
+        logger.info("[ZBAL] Compiling model after GVA initialization")
+        for size in sorted(warmup_sizes, reverse=True):
+            logger.info("Compile and warming up model for size %d", size)
+            self.model_runner._dummy_run(size)
+
+        if not self.model_config.enforce_eager:
+            npugraph_memory_bytes = self.model_runner.capture_model()
+            logger.info("[ZBAL] ACL graph pool memory: %.2f GiB", npugraph_memory_bytes / GiB_bytes)
 
     def profile(self, is_start: bool = True, profile_prefix: str | None = None):
         # Check if profiling is enabled (RFC #6954 - align with upstream vLLM)
