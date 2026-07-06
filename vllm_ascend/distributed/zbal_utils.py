@@ -197,7 +197,12 @@ def lazy_init_zbal_gva_mem(
     pool_mb = envs_ascend.VLLM_ASCEND_ZBAL_LOCAL_MEM_SIZE
     free_mb = free_bytes // (1024**2)
     total_mb = total_bytes // (1024**2)
-    used_mb = max(total_mb - free_mb, 0)
+    # NPU devices reserve ~2.5 GB for workspace & OS outside torch.
+    # torch.npu.mem_get_info() returns the physical total (including reserved),
+    # so we subtract it to avoid over-counting used memory and under-sizing GVA.
+    # (Matches sglang's total_memory = 61.2 GB for 64 GB devices.)
+    RESERVED_MEM_MB = 2500
+    used_mb = max(total_mb - free_mb - RESERVED_MEM_MB, 0)
     gva_mb = pool_mb - used_mb
     # Align to 128 MiB (required by zbal, matches sglang).
     gva_mb = gva_mb - (gva_mb % 128)
