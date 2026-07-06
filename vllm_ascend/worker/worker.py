@@ -577,14 +577,53 @@ class NPUWorker(WorkerBase):
         # initial free memory. The --kv-cache-memory suggestion emitted later
         # in compile_or_warm_up_model will be skipped as well because
         # peak_activation_memory is not set.
+        #
+        # We must also reserve space for the zbal GVA heap. At zbal_init time,
+        # GVA heap = pool_mb - used_mb needs contiguous physical memory. Without
+        # reserving here, vLLM's KV cache + other allocations consume nearly
+        # all memory, leaving insufficient physical memory for zbal to create
+        # the GVA heap (HalMemCreate failed).
         if is_zbal_enabled() and not is_gva_inited():
-            available = int(self.requested_memory - self.model_runner.model_memory_usage)
-            logger.info(
-                "Available KV cache memory: %.2f GiB (mix-alloc mode; "
-                "activation peak not profiled, --kv-cache-memory suggestion "
-                "will be optimistic)",
-                GiB(available),
+            pool_mb = envs_ascend.VLLM_ASCEND_ZBAL_LOCAL_MEM_SIZE
+            # GVA heap size = pool_mb - used_mb (weights + KV cache + other).
+            # At zbal_init, zbal needs gva_mb of contiguous physical memory.
+            # We reserve pool_mb from the requested budget so vLLM limits KV
+            # cache accordingly. The actual GVA is pool_mb minus whatever vLLM
+            # actually used, computed later in lazy_init_zbal_gva_mem.
+            gva_reserve_bytes = pool_mb * (1024**2)
+            available = int(
+                self.requested_memory
+                - self.model_runner.model_memory_usage
+                - gva_reserve_bytes
             )
+            if available < 0:
+                # pool_mb is too large for the current gpu_memory_utilization.
+                # Fall back: use whatever free memory is left after weights,
+                # minus a minimum GVA reserve of 2 GB.
+                min_gva_reserve = 5 * (1024**3)
+                available = int(
+                    self.init_snapshot.free_memory
+                    - self.model_runner.model_memory_usage
+                    - min_gva_reserve
+                )
+                logger.warning(
+                    "[ZBAL] pool_mb=%d is too large for "
+                    "gpu_memory_utilization=%.2f. Falling back to minimum "
+                    "GVA reserve (5 GiB). Available KV cache: %.2f GiB. "
+                    "Consider lowering --gpu-memory-utilization or "
+                    "VLLM_ASCEND_ZBAL_LOCAL_MEM_SIZE.",
+                    pool_mb,
+                    self.cache_config.gpu_memory_utilization,
+                    GiB(max(available, 0)),
+                )
+            else:
+                logger.info(
+                    "Available KV cache memory: %.2f GiB (mix-alloc mode; "
+                    "reserved %d MiB for zbal GVA heap, activation peak not "
+                    "profiled, --kv-cache-memory suggestion will be optimistic)",
+                    GiB(available), pool_mb,
+                )
+            available = max(available, 0)
             self.available_kv_cache_memory_bytes = available
             return available
 
