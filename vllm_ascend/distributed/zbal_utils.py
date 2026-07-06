@@ -140,9 +140,18 @@ def lazy_init_zbal_gva_mem(
 
     Must be called after KV cache allocation so GVA = pool - used.
 
+    Memory source: in mix-alloc mode the zbal heap is NOT yet initialised
+    when this function runs (zbal_init is what bootstraps it), so we MUST
+    read the native ``torch.npu.mem_get_info()`` rather than
+    ``zbal.mem_get_info()``. The latter would return ``(free>0, total=0)``
+    for an un-initialised heap, producing a negative ``used`` and an
+    absurdly large GVA that fails SHM allocation. (Matches sglang's
+    ``get_available_gpu_memory`` NPU branch: "mix mode fall back into npu
+    mem info since gva may not be inited yet".)
+
     Cross-rank sync: zbal requires every rank to initialise the **same** GVA
     size. When ``cpu_group`` is provided and ``world_size > 1``, we
-    all-reduce(MIN) free/total across ranks so uneven per-rank usage (e.g.
+    all-reduce(MIN) free across ranks so uneven per-rank usage (e.g.
     embedding/lm_head only on rank 0) does not produce divergent GVA sizes.
     """
     from zbal import is_mix_alloc, zbal_init
@@ -156,27 +165,43 @@ def lazy_init_zbal_gva_mem(
     global _gva_is_inited
     assert not _gva_is_inited, "zbal gva already initialized"
 
-    free_bytes, total_bytes = _zbal_mem_get_info()
+    # CRITICAL: use native NPU stats, NOT zbal.mem_get_info(). In mix-alloc
+    # mode the zbal heap is not initialised yet, so zbal.mem_get_info() would
+    # return inconsistent values (free>0, total=0) and break the GVA math.
+    free_bytes, total_bytes = torch.npu.mem_get_info()
 
-    # Sync across ranks: GVA must be identical on every rank.
+    # Sync free across ranks: GVA must be identical on every rank.
     if cpu_group is not None and world_size > 1:
         stats = torch.tensor([free_bytes, total_bytes], dtype=torch.int64)
         dist.all_reduce(stats, op=dist.ReduceOp.MIN, group=cpu_group)
         free_bytes, total_bytes = int(stats[0].item()), int(stats[1].item())
 
-    pool_bytes = envs_ascend.VLLM_ASCEND_ZBAL_LOCAL_MEM_SIZE * 1024**2
-    gva_bytes = max(pool_bytes - (total_bytes - free_bytes), 128 * 1024**2)
-    # 2 MiB alignment (required by zbal).
-    gva_bytes = gva_bytes - (gva_bytes % 0x200000)
+    pool_mb = envs_ascend.VLLM_ASCEND_ZBAL_LOCAL_MEM_SIZE
+    free_mb = free_bytes // (1024**2)
+    total_mb = total_bytes // (1024**2)
+    used_mb = max(total_mb - free_mb, 0)
+    gva_mb = pool_mb - used_mb
+    # Align to 128 MiB (required by zbal, matches sglang).
+    gva_mb = gva_mb - (gva_mb % 128)
+
+    if gva_mb <= 0:
+        logger.error(
+            "[ZBAL] GVA size non-positive (%d MiB). pool=%d MiB, used=%d MiB, "
+            "free=%d MiB, total=%d MiB. Reduce VLLM_ASCEND_ZBAL_LOCAL_MEM_SIZE "
+            "or lower gpu_memory_utilization.",
+            gva_mb, pool_mb, used_mb, free_mb, total_mb,
+        )
+        if do_check:
+            sys.exit(-1)
+        return 0
+
     logger.info(
-        "[ZBAL] rank %s GVA: %d MiB (pool=%d MiB, free=%d MiB, total=%d MiB)",
-        world_rank,
-        gva_bytes // (1024**2),
-        pool_bytes // (1024**2),
-        free_bytes // (1024**2),
-        total_bytes // (1024**2),
+        "[ZBAL] rank %s GVA: %d MiB (pool=%d MiB, used=%d MiB, free=%d MiB, "
+        "total=%d MiB)",
+        world_rank, gva_mb, pool_mb, used_mb, free_mb, total_mb,
     )
 
+    gva_bytes = gva_mb * (1024**2)
     bootstrap_url = envs_ascend.VLLM_ASCEND_ZBAL_BOOTSTRAP_URL
     if bootstrap_url:
         res = zbal_init(world_size, gpu_id, world_rank, gva_bytes, ip_port=bootstrap_url)
