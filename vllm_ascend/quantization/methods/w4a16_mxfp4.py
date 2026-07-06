@@ -32,6 +32,7 @@ from vllm_ascend.device.mxfp_compat import (
 )
 from vllm_ascend.ops.fused_moe.experts_selector import select_experts
 from vllm_ascend.ops.fused_moe.moe_runtime_args import build_fused_experts_input
+from vllm_ascend.utils import is_nz_format_allowed
 
 from .base import AscendMoEScheme, QuantType, get_moe_num_logical_experts
 from .registry import register_scheme
@@ -203,12 +204,14 @@ class AscendW4A16MXFP4FusedMoEMethod(AscendMoEScheme):
     def process_weights_after_loading(self, layer):
         layer.w13_weight.data = unpack_uint8_to_fp4_return_float32(layer.w13_weight.data)
         layer.w13_weight.data = layer.w13_weight.data.transpose(1, 2)
-        layer.w13_weight.data = torch_npu.npu_format_cast(layer.w13_weight.data, 29, customize_dtype=torch.bfloat16)
+        if is_nz_format_allowed():
+            layer.w13_weight.data = torch_npu.npu_format_cast(layer.w13_weight.data, 29, customize_dtype=torch.bfloat16)
         layer.w13_weight.data = torch_npu.npu_convert_weight_to_int4pack(layer.w13_weight.data).contiguous()
 
         layer.w2_weight.data = unpack_uint8_to_fp4_return_float32(layer.w2_weight.data)
         layer.w2_weight.data = layer.w2_weight.data.transpose(1, 2)
-        layer.w2_weight.data = torch_npu.npu_format_cast(layer.w2_weight.data, 29, customize_dtype=torch.bfloat16)
+        if is_nz_format_allowed():
+            layer.w2_weight.data = torch_npu.npu_format_cast(layer.w2_weight.data, 29, customize_dtype=torch.bfloat16)
         layer.w2_weight.data = torch_npu.npu_convert_weight_to_int4pack(layer.w2_weight.data).contiguous()
 
         layer.w13_weight_scale.data = layer.w13_weight_scale.data.transpose(1, 2).contiguous()

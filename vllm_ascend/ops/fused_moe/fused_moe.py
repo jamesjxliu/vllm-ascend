@@ -45,6 +45,7 @@ from vllm_ascend.quantization.methods.base import get_moe_num_logical_experts
 from vllm_ascend.quantization.quant_type import QuantType
 from vllm_ascend.utils import (
     ACL_FORMAT_FRACTAL_NZ,
+    is_nz_format_allowed,
     maybe_trans_nz,
     npu_stream_switch,
     shared_expert_dp_enabled,
@@ -124,7 +125,7 @@ class AscendUnquantizedFusedMoEMethod(UnquantizedFusedMoEMethod):
         # ND format (or other formats), remove this specific 'if' check and the forced
         # npu_format_cast. At that point, the operator should be able to handle weights
         # in their native format without explicit casting here.
-        if get_ascend_config().enable_fused_mc2:
+        if get_ascend_config().enable_fused_mc2 and is_nz_format_allowed():
             layer.w13_weight.data = torch_npu.npu_format_cast(layer.w13_weight.data, ACL_FORMAT_FRACTAL_NZ)
             layer.w2_weight.data = torch_npu.npu_format_cast(layer.w2_weight.data, ACL_FORMAT_FRACTAL_NZ)
         else:

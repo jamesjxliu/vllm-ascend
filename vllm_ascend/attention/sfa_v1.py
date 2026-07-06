@@ -57,6 +57,7 @@ from vllm_ascend.utils import (
     enable_sp,
     get_ascend_device_type,
     get_weight_prefetch_method,
+    is_nz_format_allowed,
     maybe_trans_nz,
 )
 from vllm_ascend.worker.npu_input_batch import NPUInputBatch
@@ -729,7 +730,7 @@ class AscendSFAImpl(MLAAttentionImpl):
         wd_qkv = torch.cat((kv_a_proj_wt, q_a_proj_wt), dim=-1)
         wd_qkv = wd_qkv.t().contiguous()
         wd_qkv = transdata(wd_qkv, block_size=(16, 32)).unsqueeze(0).contiguous()
-        self.wd_qkv = torch_npu.npu_format_cast(wd_qkv, 29)
+        self.wd_qkv = torch_npu.npu_format_cast(wd_qkv, 29) if is_nz_format_allowed() else wd_qkv
 
         kv_a_proj_deq_scl = self.fused_qkv_a_proj.deq_scale[self.q_lora_rank :].contiguous()
         q_a_proj_deq_scl = self.fused_qkv_a_proj.deq_scale[: self.q_lora_rank].contiguous()
@@ -751,7 +752,7 @@ class AscendSFAImpl(MLAAttentionImpl):
         wu_q = trans_rope_weight(wu_q, self.qk_rope_head_dim)
         wu_q = wu_q.reshape(self.num_heads * (self.qk_nope_head_dim + self.qk_rope_head_dim), -1)
         wu_q = transdata(wu_q, block_size=(16, 32)).unsqueeze(0).contiguous()
-        self.wu_q = torch_npu.npu_format_cast(wu_q, 29)
+        self.wu_q = torch_npu.npu_format_cast(wu_q, 29) if is_nz_format_allowed() else wu_q
 
         qb_deq_scl = self.q_proj.deq_scale.data
         qb_deq_scl = qb_deq_scl.reshape(self.num_heads, self.qk_nope_head_dim + self.qk_rope_head_dim, -1)
@@ -794,17 +795,17 @@ class AscendSFAImpl(MLAAttentionImpl):
         assert self.fused_qkv_a_proj is not None
         assert self.q_proj is not None
         weight_dq = self.fused_qkv_a_proj.weight.data[..., : self.q_lora_rank].contiguous()
-        self.weight_dq = torch_npu.npu_format_cast(weight_dq, 29)
+        self.weight_dq = torch_npu.npu_format_cast(weight_dq, 29) if is_nz_format_allowed() else weight_dq
 
         weight_uq_qr = self.q_proj.weight.data.contiguous()
         self.weight_uq_qr_scale = self.q_proj.weight_scale.data.transpose(0, 1)
         self.weight_uq_qr_scale = self.weight_uq_qr_scale.reshape(
             -1, self.weight_uq_qr_scale.shape[1] * self.weight_uq_qr_scale.shape[2]
         )
-        self.weight_uq_qr = torch_npu.npu_format_cast(weight_uq_qr, 29)
+        self.weight_uq_qr = torch_npu.npu_format_cast(weight_uq_qr, 29) if is_nz_format_allowed() else weight_uq_qr
 
         weight_dkv_kr = self.fused_qkv_a_proj.weight.data[..., self.q_lora_rank :].contiguous()
-        self.weight_dkv_kr = torch_npu.npu_format_cast(weight_dkv_kr, 29)
+        self.weight_dkv_kr = torch_npu.npu_format_cast(weight_dkv_kr, 29) if is_nz_format_allowed() else weight_dkv_kr
 
         weight_scale = self.fused_qkv_a_proj.weight_scale
         weight_scale = weight_scale.transpose(0, 1)
@@ -818,16 +819,16 @@ class AscendSFAImpl(MLAAttentionImpl):
         self.fused_qkv_a_proj.weight.data = self.fused_qkv_a_proj.weight.data.T
         weight_dq = self.fused_qkv_a_proj.weight.data[..., : self.q_lora_rank].contiguous()
         self.weight_dq_cpu = weight_dq.cpu()
-        self.weight_dq = torch_npu.npu_format_cast(weight_dq, 29)
+        self.weight_dq = torch_npu.npu_format_cast(weight_dq, 29) if is_nz_format_allowed() else weight_dq
 
         weight_uq_qr = self.q_proj.weight.data.T
         weight_uq_qr = weight_uq_qr.contiguous()
         self.weight_uq_qr_cpu = weight_uq_qr.cpu()
-        self.weight_uq_qr = torch_npu.npu_format_cast(weight_uq_qr, 29)
+        self.weight_uq_qr = torch_npu.npu_format_cast(weight_uq_qr, 29) if is_nz_format_allowed() else weight_uq_qr
 
         weight_dkv_kr = self.fused_qkv_a_proj.weight.data[..., self.q_lora_rank :].contiguous()
         self.weight_dkv_kr_cpu = weight_dkv_kr.cpu()
-        self.weight_dkv_kr = torch_npu.npu_format_cast(weight_dkv_kr, 29)
+        self.weight_dkv_kr = torch_npu.npu_format_cast(weight_dkv_kr, 29) if is_nz_format_allowed() else weight_dkv_kr
 
     def forward_mha(
         self,
