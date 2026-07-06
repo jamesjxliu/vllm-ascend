@@ -835,19 +835,15 @@ class NPUWorker(WorkerBase):
                 if not any(x in compile_range for x in all_sizes):
                     warmup_sizes.append(compile_range.end)
 
-        # In zbal mix-alloc mode the GVA heap + communicator are not
-        # bootstrapped until lazy_init_zbal_gva_mem() runs (called from
-        # initialize_from_config, which the executor invokes *after*
-        # compile_or_warm_up_model in vLLM v1). Running _dummy_run / ACL
-        # graph capture before zbal_init produces "ub address out of bounds"
-        # in aclnnRmsNorm because the zbal allocator returns memory the
-        # kernel tiling cannot handle. Skip the eager compile/warmup here;
-        # the model will compile lazily on the first real forward pass, by
-        # which point lazy_init_zbal_gva_mem has run.
+        # In vLLM v1, compile_or_warm_up_model is called by the executor
+        # *after* initialize_from_config (which runs lazy_init_zbal_gva_mem),
+        # so the GVA heap is already bootstrapped by the time we reach here.
+        # The guard below is a safety net for any code path that might call
+        # compile_or_warm_up_model before initialize_from_config.
         if is_zbal_enabled() and not is_gva_inited():
-            logger.info(
-                "[ZBAL] Skipping compile_or_warm_up_model before GVA init; "
-                "model will compile lazily on first forward."
+            logger.warning(
+                "[ZBAL] compile_or_warm_up_model called before GVA init; "
+                "skipping eager compile/warmup. Model will compile lazily."
             )
             return CompilationTimes(
                 language_model=self.vllm_config.compilation_config.compilation_time,

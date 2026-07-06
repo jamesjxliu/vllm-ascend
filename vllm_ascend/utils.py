@@ -241,16 +241,6 @@ def _should_trans_nz(weight: torch.Tensor) -> bool:
     if weight.is_meta:
         return False
 
-    # ZBAL is incompatible with FRACTAL_NZ layout. When zbal is enabled the
-    # allocator may be switched before zbal_init completes, which can cause
-    # NZ-formatted weights allocated in the interim to have an incompatible
-    # memory layout, leading to aicore "ub address out of bounds" errors in
-    # MatMul kernels. Skip NZ conversion when zbal is enabled.
-    from vllm_ascend.distributed.zbal_utils import is_zbal_enabled
-
-    if is_zbal_enabled():
-        return False
-
     # 310P always converts to NZ.
     if is_310p():
         return True
@@ -276,23 +266,10 @@ def _should_trans_nz(weight: torch.Tensor) -> bool:
 # - non-310P: follow VLLM_ASCEND_ENABLE_NZ
 # - FP32: never convert
 # - meta tensor: never convert
-# - zbal enabled: never convert (incompatible memory layout)
 def maybe_trans_nz(weight: torch.Tensor) -> torch.Tensor:
     if not _should_trans_nz(weight):
         return weight
     return torch_npu.npu_format_cast(weight, ACL_FORMAT_FRACTAL_NZ)
-
-
-def is_nz_format_allowed() -> bool:
-    """Check whether FRACTAL_NZ format can be used.
-
-    Returns False when zbal is enabled because the allocator switch / GVA
-    init sequence can produce NZ tensors with a memory layout that is
-    incompatible with the aicore MatMul kernels (ub address out of bounds).
-    """
-    from vllm_ascend.distributed.zbal_utils import is_zbal_enabled
-
-    return not is_zbal_enabled()
 
 
 def _round_up(x: int, align: int):

@@ -755,6 +755,17 @@ class NPUPlatform(Platform):
                 and "garbage_collection_threshold" not in npu_alloc_configs
             ):
                 npu_alloc_configs += ",expandable_segments:True"
+
+            # ZBAL mix-alloc mode requires use_vmm_for_static_memory:True.
+            # When zbal is enabled, append this config so that is_mix_alloc()
+            # returns True and the lazy init path (switch_to_allocator only,
+            # defer zbal_init) is taken. Without this, zbal falls into standard
+            # mode where expandable_segments is incompatible (assertion error
+            # in zbal_pluggable_malloc).
+            zbal_pool_size = int(os.getenv("VLLM_ASCEND_ZBAL_LOCAL_MEM_SIZE", "0"))
+            if zbal_pool_size > 0 and "use_vmm_for_static_memory" not in npu_alloc_configs:
+                npu_alloc_configs += ",use_vmm_for_static_memory:True"
+
             os.environ["PYTORCH_NPU_ALLOC_CONF"] = npu_alloc_configs
             logger.info("Set PYTORCH_NPU_ALLOC_CONF=%s", npu_alloc_configs)
 
