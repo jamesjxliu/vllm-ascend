@@ -990,6 +990,15 @@ class NPUWorker(WorkerBase):
                 # Note: lazy_init uses WORLD scope (not TP) because in mix-alloc
                 # mode the GVA pool spans all ranks. This differs from init_zbal
                 # (standard mode) which uses TP scope.
+                #
+                # We intentionally do NOT call profile_run() here. In vLLM v1
+                # the attention backend is initialised during worker init (well
+                # before kv cache allocation), but the zbal communicator only
+                # comes into existence inside lazy_init_zbal_gva_mem. Calling
+                # profile_run now would exercise the attention path with a
+                # half-initialised communicator and crash (matches sglang,
+                # which also does not profile_run after lazy_init). The model
+                # compiles lazily on the first real forward.
                 from vllm.distributed.parallel_state import get_world_group
 
                 lazy_init_zbal_gva_mem(
@@ -999,7 +1008,6 @@ class NPUWorker(WorkerBase):
                     self.parallel_config.world_size,
                     cpu_group=get_world_group().cpu_group,
                 )
-                self.model_runner.profile_run()
 
     def profile(self, is_start: bool = True, profile_prefix: str | None = None):
         # Check if profiling is enabled (RFC #6954 - align with upstream vLLM)
