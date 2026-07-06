@@ -47,8 +47,9 @@ from typing import Any
 import torch
 import torch.distributed as dist
 
+from vllm.logger import logger
 import vllm_ascend.envs as envs_ascend
-from vllm_ascend.logger import logger
+
 
 # Module-level state. Mirrors sglang's ``gva_is_inited``.
 _gva_is_inited: bool = False
@@ -204,9 +205,23 @@ def lazy_init_zbal_gva_mem(
     if gva_mb <= 0:
         logger.error(
             "[ZBAL] GVA size non-positive (%d MiB). pool=%d MiB, used=%d MiB, "
-            "free=%d MiB, total=%d MiB. Reduce VLLM_ASCEND_ZBAL_LOCAL_MEM_SIZE "
-            "or lower gpu_memory_utilization.",
+            "free=%d MiB, total=%d MiB.\n"
+            "GVA = pool - used, so pool must be larger than used.\n"
+            "Current vLLM usage (weights + KV cache + activations) = %d MiB.\n"
+            "To fix this, either:\n"
+            "  1. Increase VLLM_ASCEND_ZBAL_LOCAL_MEM_SIZE to > %d MiB (current "
+            "pool is too small), OR\n"
+            "  2. Lower --gpu-memory-utilization so vLLM uses less memory (e.g. "
+            "reduce KV cache size), freeing up room for the zbal GVA heap.\n"
+            "Example: if NPU total = %d MiB and you want %d MiB for zbal GVA, "
+            "set VLLM_ASCEND_ZBAL_LOCAL_MEM_SIZE=%d and lower "
+            "gpu_memory_utilization so vLLM uses at most %d MiB.",
             gva_mb, pool_mb, used_mb, free_mb, total_mb,
+            used_mb,
+            used_mb,
+            total_mb,
+            max(used_mb + 128, pool_mb),
+            pool_mb - 128,
         )
         if do_check:
             sys.exit(-1)
