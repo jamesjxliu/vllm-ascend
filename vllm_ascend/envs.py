@@ -110,6 +110,18 @@ env_variables: dict[str, Callable[[], Any]] = {
     # Control the aclrtMemcpyBatchAsync compile path for KV cache offloading.
     # "1": force enable, "0": force disable, None: auto-detect from CANN headers.
     "VLLM_ASCEND_ENABLE_BATCH_MEMCPY": lambda: os.getenv("VLLM_ASCEND_ENABLE_BATCH_MEMCPY", None),
+    # ZBAL (Zero Buffer Accelerate Library) local memory pool size in MiB.
+    # 0 or unset: zbal disabled, use the default HCCL backend (no impact on
+    # existing code paths).
+    # >0: enable zbal. In standard mode (decided by the zbal library itself)
+    # zbal_init is called eagerly with the full pool size as GVA. In mix-alloc
+    # mode, switch_to_allocator() is called early (before any NPU allocation)
+    # and zbal_init is deferred until KV cache is allocated, then
+    # GVA = pool - used_by_weights_kv.
+    "VLLM_ASCEND_ZBAL_LOCAL_MEM_SIZE": lambda: int(os.getenv("VLLM_ASCEND_ZBAL_LOCAL_MEM_SIZE", "0")),
+    # Optional bootstrap URL (ip:port) for zbal communicator init. Required
+    # only when zbal needs an explicit rendezvous endpoint (e.g. multi-node).
+    "VLLM_ASCEND_ZBAL_BOOTSTRAP_URL": lambda: os.getenv("VLLM_ASCEND_ZBAL_BOOTSTRAP_URL", ""),
 }
 
 # end-env-vars-definition

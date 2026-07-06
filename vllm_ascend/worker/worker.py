@@ -62,6 +62,13 @@ from vllm_ascend.cpu_binding import bind_cpus
 from vllm_ascend.device_allocator.camem import CaMemAllocator
 from vllm_ascend.device_allocator.sleep_mem_optimized import SleepWakeupManager
 from vllm_ascend.distributed.parallel_state import init_ascend_model_parallel
+from vllm_ascend.distributed.zbal_utils import (
+    get_dist_backend,
+    init_zbal,
+    is_gva_inited,
+    is_zbal_enabled,
+    lazy_init_zbal_gva_mem,
+)
 from vllm_ascend.ops.triton.triton_utils import init_device_properties_triton
 from vllm_ascend.profiler.torch_npu_profiler import TorchNPUProfilerWrapper
 from vllm_ascend.utils import (
@@ -109,6 +116,31 @@ class NPUWorker(WorkerBase):
         from vllm_ascend.utils import adapt_patch
 
         adapt_patch()
+
+        # ZBAL must be after adapt_patch (which sets torch.accelerator.*)
+        # but before any NPU allocation (custom ops, ATB extensions, weights).
+        #
+        # We pass TP size / TP rank (matching the validated sglang path) because
+        # zbal builds a single bootstrap communicator that the TP group operates
+        # on; standard mode does not support PP > 1 (only mix-alloc does).
+        # TP rank is derived from global rank via the standard vllm rank layout
+        # (TP is the innermost dimension): rank = dp*pp*tp + pp*tp + tp_rank.
+        if is_zbal_enabled():
+            tp_size = vllm_config.parallel_config.tensor_parallel_size
+            pp_size = vllm_config.parallel_config.pipeline_parallel_size
+            if pp_size > 1:
+                try:
+                    from zbal import is_mix_alloc
+                    mix_alloc = is_mix_alloc()
+                except ImportError:
+                    mix_alloc = False
+                if not mix_alloc:
+                    logger.error(
+                        "[ZBAL] PP > 1 is only supported in zbal mix-alloc mode. "
+                        "Current mode: standard. Communicator init may fail."
+                    )
+            tp_rank = rank % tp_size if tp_size > 0 else 0
+            init_zbal(tp_size, local_rank, tp_rank)
 
         # Register ops when worker init.
         from vllm_ascend import ops
@@ -537,6 +569,25 @@ class NPUWorker(WorkerBase):
         """
         GiB = lambda b: b / GiB_bytes
 
+        # ZBAL mix-alloc: profile_run() would execute the model before the GVA
+        # heap is bootstrapped (lazy_init_zbal_gva_mem runs later from
+        # initialize_from_config). Running the model on zbal-allocated memory
+        # before zbal_init triggers "ub address out of bounds" in aclnnRmsNorm.
+        # Skip profiling and fall back to a conservative estimate based on the
+        # initial free memory. The --kv-cache-memory suggestion emitted later
+        # in compile_or_warm_up_model will be skipped as well because
+        # peak_activation_memory is not set.
+        if is_zbal_enabled() and not is_gva_inited():
+            available = int(self.requested_memory - self.model_runner.model_memory_usage)
+            logger.info(
+                "Available KV cache memory: %.2f GiB (mix-alloc mode; "
+                "activation peak not profiled, --kv-cache-memory suggestion "
+                "will be optimistic)",
+                GiB(available),
+            )
+            self.available_kv_cache_memory_bytes = available
+            return available
+
         # Fast path: user has explicitly specified KV cache size via
         # --kv-cache-memory. Still run profile_run() to compile the model,
         # but skip the memory profiling calculation entirely.
@@ -784,6 +835,29 @@ class NPUWorker(WorkerBase):
                 if not any(x in compile_range for x in all_sizes):
                     warmup_sizes.append(compile_range.end)
 
+        # In zbal mix-alloc mode the GVA heap + communicator are not
+        # bootstrapped until lazy_init_zbal_gva_mem() runs (called from
+        # initialize_from_config, which the executor invokes *after*
+        # compile_or_warm_up_model in vLLM v1). Running _dummy_run / ACL
+        # graph capture before zbal_init produces "ub address out of bounds"
+        # in aclnnRmsNorm because the zbal allocator returns memory the
+        # kernel tiling cannot handle. Skip the eager compile/warmup here;
+        # the model will compile lazily on the first real forward pass, by
+        # which point lazy_init_zbal_gva_mem has run.
+        if is_zbal_enabled() and not is_gva_inited():
+            logger.info(
+                "[ZBAL] Skipping compile_or_warm_up_model before GVA init; "
+                "model will compile lazily on first forward."
+            )
+            return CompilationTimes(
+                language_model=self.vllm_config.compilation_config.compilation_time,
+                encoder=getattr(
+                    self.vllm_config.compilation_config,
+                    "encoder_compilation_time",
+                    0.0,
+                ),
+            )
+
         for size in sorted(warmup_sizes, reverse=True):
             logger.info("Compile and warming up model for size %d", size)
             self.model_runner._dummy_run(size)
@@ -1010,6 +1084,23 @@ class NPUWorker(WorkerBase):
             ):
                 self.model_runner._init_kv_zero_meta()
 
+        # ZBAL mix-alloc lazy init: must run AFTER KV cache allocation so GVA
+        # = pool - used_by_weights_kv. In mix-alloc mode switch_to_allocator()
+        # was called early in __init__, but zbal_init (which bootstraps the
+        # GVA heap + communicator) is deferred to here. Matches sglang's
+        # init_attention_backends() calling lazy_init_zbal_gva_mem before
+        # cuda graph capture.
+        if is_zbal_enabled() and not is_gva_inited():
+            from vllm.distributed.parallel_state import get_world_group
+
+            lazy_init_zbal_gva_mem(
+                self.device,
+                self.local_rank,
+                self.rank,
+                self.parallel_config.world_size,
+                cpu_group=get_world_group().cpu_group,
+            )
+
     def profile(self, is_start: bool = True, profile_prefix: str | None = None):
         # Check if profiling is enabled (RFC #6954 - align with upstream vLLM)
         if self.profiler_config is None or self.profiler_config.profiler is None:
@@ -1063,7 +1154,11 @@ class NPUWorker(WorkerBase):
         """Initialize the distributed environment."""
         init_batch_invariance()
         init_distributed_environment(
-            self.parallel_config.world_size, self.rank, self.distributed_init_method, self.local_rank, "hccl"
+            self.parallel_config.world_size,
+            self.rank,
+            self.distributed_init_method,
+            self.local_rank,
+            get_dist_backend(),
         )
         ensure_model_parallel_initialized(
             self.parallel_config.tensor_parallel_size,

@@ -153,7 +153,12 @@ class GroupCoordinatorPatch(GroupCoordinator):
         reuse_domain = _resolve_reuse_domain(self.group_name)
         self_device_group = None
         for ranks in self.group_ranks:
-            hccl_pg_options = create_hccl_pg_options(self.group_name)
+            # zbal backend does not accept HCCL pg_options; pass None so
+            # torch.distributed.new_group uses the backend's defaults.
+            if self.backend == "zbal":
+                hccl_pg_options = None
+            else:
+                hccl_pg_options = create_hccl_pg_options(self.group_name)
             device_group, hccl_key = _acquire_hccl_group(
                 ranks=ranks,
                 backend=self.backend,
@@ -162,7 +167,7 @@ class GroupCoordinatorPatch(GroupCoordinator):
             )
             if hccl_key is not None:
                 self._acquired_hccl_keys.append(hccl_key)
-            elif self.backend == "hccl" and self.rank in ranks:
+            elif self.backend in ("hccl", "zbal") and self.rank in ranks:
                 self._unshared_hccl_groups.append(device_group)
 
             cpu_group = torch.distributed.new_group(ranks, backend="gloo") if create_cpu_group else None
@@ -216,7 +221,7 @@ class GroupCoordinatorPatch(GroupCoordinator):
         self._release_hccl_resources()
 
         device_group = getattr(self, "device_group", None)
-        if device_group is not None and self.backend != "hccl":
+        if device_group is not None and self.backend not in ("hccl", "zbal"):
             torch.distributed.destroy_process_group(device_group)
         if hasattr(self, "device_group"):
             del self.device_group
