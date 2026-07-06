@@ -116,8 +116,28 @@ class NPUWorker(WorkerBase):
 
         # ZBAL must be after adapt_patch (which sets torch.accelerator.*)
         # but before any NPU allocation (custom ops, ATB extensions).
+        #
+        # We pass TP size / TP rank (matching the validated sglang path) because
+        # zbal builds a single bootstrap communicator that the TP group operates
+        # on; standard mode does not support PP > 1 (only mix-alloc does).
+        # TP rank is derived from global rank via the standard vllm rank layout
+        # (TP is the innermost dimension): rank = dp*pp*tp + pp*tp + tp_rank.
         if is_zbal_enabled():
-            init_zbal(vllm_config.parallel_config.world_size, local_rank, rank)
+            tp_size = vllm_config.parallel_config.tensor_parallel_size
+            pp_size = vllm_config.parallel_config.pipeline_parallel_size
+            if pp_size > 1:
+                try:
+                    from zbal import is_mix_alloc
+                    mix_alloc = is_mix_alloc()
+                except ImportError:
+                    mix_alloc = False
+                if not mix_alloc:
+                    logger.error(
+                        "[ZBAL] PP > 1 is only supported in zbal mix-alloc mode. "
+                        "Current mode: standard. Communicator init may fail."
+                    )
+            tp_rank = rank % tp_size if tp_size > 0 else 0
+            init_zbal(tp_size, local_rank, tp_rank)
 
         # Register ops when worker init.
         from vllm_ascend import ops
@@ -492,8 +512,19 @@ class NPUWorker(WorkerBase):
                 self.available_kv_cache_memory_bytes = max(
                     requested - (total - free), 0,
                 )
+                # In mix-alloc mode the zbal allocator is already switched,
+                # so torch's memory_stats do not reflect activation peak.
+                # Set conservative placeholders so the --kv-cache-memory
+                # suggestion logic in compile_or_warm_up_model() can run
+                # (it guards on hasattr(self, "peak_activation_memory")).
+                # The suggestion will be optimistic; users should verify.
+                self.peak_activation_memory = 0
+                self.non_torch_memory = 0
+                self.npugraph_memory_estimate = 0
                 logger.info_once(
-                    "Available KV cache memory: %.2f GiB",
+                    "Available KV cache memory: %.2f GiB "
+                    "(mix-alloc mode; activation peak not profiled, "
+                    "--kv-cache-memory suggestion will be optimistic)",
                     GiB(self.available_kv_cache_memory_bytes),
                     scope="local",
                 )
@@ -950,9 +981,23 @@ class NPUWorker(WorkerBase):
             from zbal import is_mix_alloc
 
             if is_mix_alloc():
+                # Pass the world-group cpu_group so all ranks can all-reduce(MIN)
+                # their free/total memory and converge on the same GVA size.
+                # Without this, uneven per-rank usage (e.g. embedding only on
+                # rank 0) would produce divergent GVA sizes and break the
+                # zbal communicator. See lazy_init_zbal_gva_mem docstring.
+                #
+                # Note: lazy_init uses WORLD scope (not TP) because in mix-alloc
+                # mode the GVA pool spans all ranks. This differs from init_zbal
+                # (standard mode) which uses TP scope.
+                from vllm.distributed.parallel_state import get_world_group
+
                 lazy_init_zbal_gva_mem(
-                    self.device, self.local_rank, self.rank,
+                    self.device,
+                    self.local_rank,
+                    self.rank,
                     self.parallel_config.world_size,
+                    cpu_group=get_world_group().cpu_group,
                 )
                 self.model_runner.profile_run()
 
