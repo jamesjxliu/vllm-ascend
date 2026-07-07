@@ -1,5 +1,6 @@
 import gc
 import logging
+import os
 import sys
 
 import torch
@@ -46,6 +47,16 @@ def init_zbal(
     zbal_mem_size = envs_ascend.VLLM_ASCEND_ZBAL_LOCAL_MEM_SIZE
     if not zbal_mem_size > 0:
         return 1
+
+    # Force mix-alloc mode: weights & KV cache use DMA VMM, activations use
+    # SMA/GVA. This avoids memory fragmentation and matches the validated
+    # sglang path (see ZBAL_NPU_ALLOC_CONF in zbal docs). Without this,
+    # ALL allocations go through the SMA allocator, which can return
+    # non-standard memory layouts that trigger
+    # "VEC instruction error: ub address out of bounds" in aclnn* kernels.
+    # Must be set before importing zbal (zbal reads it at C++ init time).
+    os.environ.setdefault("ZBAL_NPU_ALLOC_CONF", "use_vmm_for_static_memory:True")
+    os.environ.setdefault("PYTORCH_NPU_ALLOC_CONF", "expandable_segments:True")
 
     global _gva_is_inited, _original_npu_mem_get_info
     from zbal import is_mix_alloc, switch_to_allocator, zbal_init
@@ -96,13 +107,6 @@ def lazy_init_zbal_gva_mem(
         return 1
 
     global _gva_is_inited
-
-    # Release cached blocks so the GVA math sees the real free memory.
-    # zbal mix-alloc mode requires this before reading mem_get_info,
-    # otherwise cached fragments cause GVA underestimation, which leads
-    # to "ub address out of bounds" in SMA allocator.
-    gc.collect()
-    torch.npu.empty_cache()
 
     total_memory_gb = 61.2
     free_gpu_memory_gb = _get_available_gpu_memory_gb(

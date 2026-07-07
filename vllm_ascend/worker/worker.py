@@ -65,7 +65,6 @@ from vllm_ascend.distributed.parallel_state import init_ascend_model_parallel
 from vllm_ascend.distributed.zbal_utils import (
     get_dist_backend,
     init_zbal,
-    is_gva_inited,
     is_zbal_enabled,
     lazy_init_zbal_gva_mem,
 )
@@ -573,17 +572,11 @@ class NPUWorker(WorkerBase):
             )
             return kv_cache_memory_bytes
 
-        # zbal mix-alloc mode: profile_run() would execute the model before the
-        # GVA heap is bootstrapped (lazy_init_zbal_gva_mem runs later from
-        # initialize_from_config). Running the model on zbal-allocated memory
-        # before zbal_init triggers "ub address out of bounds" in aclnnRmsNorm.
-        # Skip profiling and compute KV cache budget conservatively instead.
-        #
-        # GVA = pool - used (weights + KV + activations), so we must reserve
-        # MIN_GVA_MB for the zbal heap, otherwise GVA underflows and SMA
-        # allocator returns invalid addresses triggering "ub address out of
-        # bounds" errors.
-        if is_zbal_enabled() and not is_gva_inited():
+        # zbal mix-alloc: KV cache budget from pool - used, no profiling.
+        # profile_run() is deferred to initialize_from_config (after GVA init)
+        # because running a forward pass before zbal_init would allocate
+        # activations from the SMA allocator with an uninitialized GVA heap.
+        if is_zbal_enabled():
             from zbal import is_mix_alloc
 
             if is_mix_alloc():
@@ -591,18 +584,12 @@ class NPUWorker(WorkerBase):
                 pool_bytes = envs_ascend.VLLM_ASCEND_ZBAL_LOCAL_MEM_SIZE * 1024**2
                 effective_total = min(pool_bytes, total)
                 requested = int(effective_total * self.cache_config.gpu_memory_utilization)
-                raw_budget = max(requested - (total - free), 0)
-                # Reserve MIN_GVA_MB for zbal GVA heap stability.
-                MIN_GVA_BYTES = 4 * (1024**3)  # 4 GiB
                 self.available_kv_cache_memory_bytes = max(
-                    raw_budget - MIN_GVA_BYTES, 0,
+                    requested - (total - free), 0,
                 )
                 logger.info_once(
-                    "Available KV cache memory: %.2f GiB (mix-alloc; "
-                    "raw=%.2f GiB, reserved %.2f GiB for zbal GVA)",
+                    "Available KV cache memory: %.2f GiB",
                     GiB(self.available_kv_cache_memory_bytes),
-                    GiB(raw_budget),
-                    GiB(MIN_GVA_BYTES),
                     scope="local",
                 )
                 return self.available_kv_cache_memory_bytes
@@ -1066,26 +1053,21 @@ class NPUWorker(WorkerBase):
         # zbal mix-alloc: bootstrap the GVA heap now that KV cache is allocated.
         # GVA = pool - used (weights + KV cache + activations), so zbal_init
         # must run AFTER initialize_kv_cache.
-        #
-        # NOTE: do NOT call profile_run() here. sglang's validated zbal path
-        # also skips profiling at this stage — profile_run would execute a
-        # full forward pass that allocates activations from the SMA allocator,
-        # and if GVA is tight the extra allocation triggers "ub address out of
-        # bounds" in aicore. The subsequent compile_or_warm_up_model step will
-        # exercise the model with proper memory accounting.
-        if is_zbal_enabled() and not is_gva_inited():
+        # profile_run() is required here — it exercises the model with a dummy
+        # forward pass so the SMA allocator stabilizes its internal state
+        # before real inference begins. The validated v0.18.0_zbal path calls
+        # profile_run() immediately after lazy_init_zbal_gva_mem.
+        if is_zbal_enabled():
             from zbal import is_mix_alloc
 
             if is_mix_alloc():
-                from vllm.distributed.parallel_state import get_world_group
-
                 lazy_init_zbal_gva_mem(
                     self.device,
                     self.local_rank,
                     self.rank,
                     self.parallel_config.world_size,
-                    cpu_group=get_world_group().cpu_group,
                 )
+                self.model_runner.profile_run()
 
     def profile(self, is_start: bool = True, profile_prefix: str | None = None):
         # Check if profiling is enabled (RFC #6954 - align with upstream vLLM)
