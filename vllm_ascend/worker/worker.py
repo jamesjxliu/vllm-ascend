@@ -61,6 +61,7 @@ from vllm_ascend.cpu_binding import bind_cpus
 from vllm_ascend.device_allocator.camem import CaMemAllocator
 from vllm_ascend.device_allocator.sleep_mem_optimized import SleepWakeupManager
 from vllm_ascend.distributed.parallel_state import init_ascend_model_parallel
+from vllm_ascend.distributed.zbal_utils import get_zbal_backend, init_zbal, is_zbal_enabled
 from vllm_ascend.ops.triton.triton_utils import init_device_properties_triton
 from vllm_ascend.profiler.torch_npu_profiler import TorchNPUProfilerWrapper
 from vllm_ascend.utils import (
@@ -1004,8 +1005,21 @@ class NPUWorker(WorkerBase):
     def _init_worker_distributed_environment(self) -> None:
         """Initialize the distributed environment."""
         init_batch_invariance()
+
+        # ZBAL: switch allocator / full init before any torch distributed init
+        if is_zbal_enabled():
+            logger.info(
+                "[ZBAL] Initializing zbal: world_size=%s gpu_id=%s rank=%s",
+                self.parallel_config.world_size,
+                self.local_rank,
+                self.rank,
+            )
+            init_zbal(self.parallel_config.world_size, self.local_rank, self.rank)
+
+        backend = get_zbal_backend()
+        logger.info("Using distributed backend: %s", backend)
         init_distributed_environment(
-            self.parallel_config.world_size, self.rank, self.distributed_init_method, self.local_rank, "hccl"
+            self.parallel_config.world_size, self.rank, self.distributed_init_method, self.local_rank, backend
         )
         ensure_model_parallel_initialized(
             self.parallel_config.tensor_parallel_size,

@@ -153,7 +153,12 @@ class GroupCoordinatorPatch(GroupCoordinator):
         reuse_domain = _resolve_reuse_domain(self.group_name)
         self_device_group = None
         for ranks in self.group_ranks:
-            hccl_pg_options = create_hccl_pg_options(self.group_name)
+            # ZBAL backend does not use HCCL pg_options; passing
+            # ProcessGroupHCCL.Options would be incorrect.
+            if self.backend == "zbal":
+                hccl_pg_options = None
+            else:
+                hccl_pg_options = create_hccl_pg_options(self.group_name)
             device_group, hccl_key = _acquire_hccl_group(
                 ranks=ranks,
                 backend=self.backend,
