@@ -68,19 +68,30 @@ class AscendRMSNorm(RMSNorm):
     ) -> torch.Tensor | tuple[torch.Tensor, torch.Tensor]:
         import torch_npu
 
+        # zbal's SMA allocator may return tensors with non-standard memory
+        # layout that cause "VEC instruction error: ub address out of bounds"
+        # in aclnnRmsNorm. Force contiguity for x, residual, and weight.
+        if is_zbal_enabled():
+            x = x.contiguous()
+            if residual is not None:
+                residual = residual.contiguous()
+            weight = self.weight.contiguous()
+        else:
+            weight = self.weight
+
         if residual is not None:
             residual = torch.ops.vllm.maybe_chunk_residual(x, residual)
             if enable_custom_op():
                 x, _, residual = torch.ops._C_ascend.npu_add_rms_norm_bias(
-                    x, residual, self.weight, self.bias, self.variance_epsilon
+                    x, residual, weight, self.bias, self.variance_epsilon
                 )
             else:
-                x, _, residual = torch_npu.npu_add_rms_norm(x, residual, self.weight, self.variance_epsilon)
+                x, _, residual = torch_npu.npu_add_rms_norm(x, residual, weight, self.variance_epsilon)
                 if self.bias is not None:
                     x.add_(self.bias)
             return x, residual
 
-        x, residual = torch_npu.npu_rms_norm(x, self.weight, self.variance_epsilon)
+        x, residual = torch_npu.npu_rms_norm(x, weight, self.variance_epsilon)
         if self.bias_loaded:
             x.add_(self.bias)
 
@@ -97,17 +108,26 @@ class AscendGemmaRMSNorm(GemmaRMSNorm):
     ) -> torch.Tensor | tuple[torch.Tensor, torch.Tensor]:
         import torch_npu
 
+        # zbal: force contiguity to avoid "ub address out of bounds" in aclnnRmsNorm.
+        if is_zbal_enabled():
+            x = x.contiguous()
+            if residual is not None:
+                residual = residual.contiguous()
+            weight = self.weight.contiguous()
+        else:
+            weight = self.weight
+
         if residual is not None:
             residual = torch.ops.vllm.maybe_chunk_residual(x, residual)
             if enable_custom_op():
                 x, _, residual = torch.ops._C_ascend.npu_add_rms_norm_bias(
-                    x, residual, 1.0 + self.weight, None, self.variance_epsilon
+                    x, residual, 1.0 + weight, None, self.variance_epsilon
                 )
             else:
-                x, _, residual = torch_npu.npu_add_rms_norm(x, residual, 1.0 + self.weight, self.variance_epsilon)
+                x, _, residual = torch_npu.npu_add_rms_norm(x, residual, 1.0 + weight, self.variance_epsilon)
             return x, residual
 
-        x = DeviceOperator.npu_gemma_rms_norm(x, self.weight, self.variance_epsilon)
+        x = DeviceOperator.npu_gemma_rms_norm(x, weight, self.variance_epsilon)
 
         return x
 

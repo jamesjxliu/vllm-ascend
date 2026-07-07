@@ -353,4 +353,11 @@ class AscendQwen2RMSNorm(nn.Module):
         self.variance_epsilon = eps
 
     def forward(self, hidden_states: torch.Tensor) -> torch.Tensor:
-        return torch_npu.npu_rms_norm(hidden_states, self.weight, epsilon=self.variance_epsilon)[0]
+        from vllm_ascend.distributed.zbal_utils import is_zbal_enabled
+
+        if is_zbal_enabled():
+            hidden_states = hidden_states.contiguous()
+            weight = self.weight.contiguous()
+        else:
+            weight = self.weight
+        return torch_npu.npu_rms_norm(hidden_states, weight, epsilon=self.variance_epsilon)[0]
