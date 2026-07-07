@@ -1065,9 +1065,14 @@ class NPUWorker(WorkerBase):
 
         # zbal mix-alloc: bootstrap the GVA heap now that KV cache is allocated.
         # GVA = pool - used (weights + KV cache + activations), so zbal_init
-        # must run AFTER initialize_kv_cache. Also run profile_run() since it
-        # was skipped in determine_available_memory (running it before zbal_init
-        # would trigger "ub address out of bounds" in aclnnRmsNorm).
+        # must run AFTER initialize_kv_cache.
+        #
+        # NOTE: do NOT call profile_run() here. sglang's validated zbal path
+        # also skips profiling at this stage — profile_run would execute a
+        # full forward pass that allocates activations from the SMA allocator,
+        # and if GVA is tight the extra allocation triggers "ub address out of
+        # bounds" in aicore. The subsequent compile_or_warm_up_model step will
+        # exercise the model with proper memory accounting.
         if is_zbal_enabled() and not is_gva_inited():
             from zbal import is_mix_alloc
 
@@ -1081,7 +1086,6 @@ class NPUWorker(WorkerBase):
                     self.parallel_config.world_size,
                     cpu_group=get_world_group().cpu_group,
                 )
-                self.model_runner.profile_run()
 
     def profile(self, is_start: bool = True, profile_prefix: str | None = None):
         # Check if profiling is enabled (RFC #6954 - align with upstream vLLM)
