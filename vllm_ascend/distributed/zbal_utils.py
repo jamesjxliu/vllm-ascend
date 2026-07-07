@@ -1,3 +1,4 @@
+import gc
 import logging
 import sys
 
@@ -95,6 +96,13 @@ def lazy_init_zbal_gva_mem(
         return 1
 
     global _gva_is_inited
+
+    # Release cached blocks so the GVA math sees the real free memory.
+    # zbal mix-alloc mode requires this before reading mem_get_info,
+    # otherwise cached fragments cause GVA underestimation, which leads
+    # to "ub address out of bounds" in SMA allocator.
+    gc.collect()
+    torch.npu.empty_cache()
 
     total_memory_gb = 61.2
     free_gpu_memory_gb = _get_available_gpu_memory_gb(

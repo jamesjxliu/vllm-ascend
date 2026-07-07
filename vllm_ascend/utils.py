@@ -237,6 +237,13 @@ def _should_trans_nz(weight: torch.Tensor) -> bool:
     if weight.dtype == torch.float32:
         return False
 
+    # zbal: NZ format weights are incompatible with zbal's memory layout and
+    # trigger "VEC instruction error: ub address out of bounds" in MatMul/
+    # RmsNorm kernels. Keep weights in native ND format when zbal is enabled.
+    from vllm_ascend.distributed.zbal_utils import is_zbal_enabled
+    if is_zbal_enabled():
+        return False
+
     # meta tensor only keeps shape/dtype meta info without physical memory, it is not necessary to trans it to NZ
     if weight.is_meta:
         return False

@@ -21,6 +21,7 @@ from vllm.config import get_current_vllm_config
 from vllm.model_executor.layers.layernorm import GemmaRMSNorm, RMSNorm, RMSNormGated
 
 from vllm_ascend.device.device_op import DeviceOperator
+from vllm_ascend.distributed.zbal_utils import is_zbal_enabled
 from vllm_ascend.ops.triton.layernorm_gated import layer_norm_fwd_npu
 from vllm_ascend.utils import enable_custom_op, get_weight_prefetch_method
 
@@ -130,12 +131,16 @@ class LayerNormFn(torch.autograd.Function):
         x_shape_og = x.shape
         # reshape input data into 2D tensor
         x = x.reshape(-1, x.shape[-1])
-        if x.stride(-1) != 1:
+        # zbal's SMA allocator may return tensors with non-standard memory
+        # layout that pass the stride(-1)==1 check but still cause AICore
+        # "ub address out of bounds" in aclnnRmsNorm. Force contiguous when
+        # zbal is enabled.
+        if x.stride(-1) != 1 or is_zbal_enabled():
             x = x.contiguous()
         if z is not None:
             assert z.shape == x_shape_og
             z = z.reshape(-1, z.shape[-1])
-            if z.stride(-1) != 1:
+            if z.stride(-1) != 1 or is_zbal_enabled():
                 z = z.contiguous()
         weight = weight.contiguous()
         if bias is not None:

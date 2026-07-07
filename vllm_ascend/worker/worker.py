@@ -106,8 +106,16 @@ class NPUWorker(WorkerBase):
         **kwargs,
     ):
         """Initialize the worker for Ascend."""
+        # zbal builds a single bootstrap communicator that the TP group
+        # operates on; standard mode does not support PP > 1 (only mix-alloc
+        # does). Pass TP size / TP rank (matching the validated sglang path)
+        # rather than global world_size / rank. TP rank is derived from global
+        # rank via the standard vllm rank layout (TP is the innermost dim):
+        # rank = dp*pp*tp + pp*tp + tp_rank.
         if is_zbal_enabled():
-            init_zbal(vllm_config.parallel_config.world_size, local_rank, rank)
+            tp_size = vllm_config.parallel_config.tensor_parallel_size
+            tp_rank = rank % tp_size if tp_size > 0 else 0
+            init_zbal(tp_size, local_rank, tp_rank)
 
         if not envs_ascend.COMPILE_CUSTOM_KERNELS:
             logger.warning(
@@ -570,6 +578,11 @@ class NPUWorker(WorkerBase):
         # initialize_from_config). Running the model on zbal-allocated memory
         # before zbal_init triggers "ub address out of bounds" in aclnnRmsNorm.
         # Skip profiling and compute KV cache budget conservatively instead.
+        #
+        # GVA = pool - used (weights + KV + activations), so we must reserve
+        # MIN_GVA_MB for the zbal heap, otherwise GVA underflows and SMA
+        # allocator returns invalid addresses triggering "ub address out of
+        # bounds" errors.
         if is_zbal_enabled() and not is_gva_inited():
             from zbal import is_mix_alloc
 
@@ -578,12 +591,18 @@ class NPUWorker(WorkerBase):
                 pool_bytes = envs_ascend.VLLM_ASCEND_ZBAL_LOCAL_MEM_SIZE * 1024**2
                 effective_total = min(pool_bytes, total)
                 requested = int(effective_total * self.cache_config.gpu_memory_utilization)
+                raw_budget = max(requested - (total - free), 0)
+                # Reserve MIN_GVA_MB for zbal GVA heap stability.
+                MIN_GVA_BYTES = 4 * (1024**3)  # 4 GiB
                 self.available_kv_cache_memory_bytes = max(
-                    requested - (total - free), 0,
+                    raw_budget - MIN_GVA_BYTES, 0,
                 )
                 logger.info_once(
-                    "Available KV cache memory: %.2f GiB",
+                    "Available KV cache memory: %.2f GiB (mix-alloc; "
+                    "raw=%.2f GiB, reserved %.2f GiB for zbal GVA)",
                     GiB(self.available_kv_cache_memory_bytes),
+                    GiB(raw_budget),
+                    GiB(MIN_GVA_BYTES),
                     scope="local",
                 )
                 return self.available_kv_cache_memory_bytes
