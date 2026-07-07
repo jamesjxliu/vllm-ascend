@@ -118,7 +118,7 @@ def lazy_init_zbal_gva_mem(
     used_memory_gb = total_memory_gb - free_gpu_memory_gb
     gva_in_mb = envs_ascend.VLLM_ASCEND_ZBAL_LOCAL_MEM_SIZE - int(used_memory_gb * 1024)
     gva_in_mb = gva_in_mb - gva_in_mb % 128
-    logger.info("[ZBAL] rank %s GVA: %s MB", world_rank, gva_in_mb)
+    print(f"[ZBAL] rank {world_rank} GVA: {gva_in_mb} MB")
 
     assert not _gva_is_inited, "zbal gva already initialized"
 
