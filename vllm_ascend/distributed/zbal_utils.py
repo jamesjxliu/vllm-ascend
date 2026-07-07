@@ -188,71 +188,29 @@ def _patch_npu_mem_get_info():
 
 
 def _patch_memory_stats_for_mix_alloc():
-    """Wrap memory_stats paths for mix-alloc.
+    """Wrap memory_stats_as_nested_dict for mix-alloc (get_device_stats not supported).
 
-    zbal mix allocator does not support ``get_device_stats``, so any call to
-    ``torch_npu._C._npu_memoryStats`` raises RuntimeError. Patch all Python
-    entry points on ``torch_npu.npu``, ``torch_npu.npu.memory``, and
-    ``torch.accelerator`` (the entry vLLM's MemorySnapshot calls), plus the
-    C-level ``_npu_memoryStats`` when assignable, so all wrappers return ``{}``
-    on that error.
+    Matches the validated v0.18.0_zbal path: only patch this single entry point.
+    Patching ``torch_npu._C._npu_memoryStats`` or ``memory_stats`` at the C
+    level can interfere with the NPU runtime and cause aclnn* kernel failures.
     """
     try:
         import torch_npu
     except ImportError:
         return
 
-    import torch
+    _orig = torch_npu.npu.memory.memory_stats_as_nested_dict
 
-    ERR_MARKER = "do not support get_device_stats"
-
-    def _safe_call(fn, device):
+    def _patched(device=None):
         try:
-            return fn(device)
+            return _orig(device)
         except RuntimeError as e:
-            if ERR_MARKER in str(e):
+            if "do not support get_device_stats" in str(e):
                 return {}
             raise
 
-    def _make_patched(orig):
-        if getattr(orig, "_zbal_patched", False):
-            return None
-        def _patched(device=None):
-            return _safe_call(orig, device)
-        _patched._zbal_patched = True
-        return _patched
-
-    patched = []
-    targets = [
-        ("torch_npu.npu", torch_npu.npu),
-        ("torch_npu.npu.memory", torch_npu.npu.memory),
-        ("torch.accelerator", torch.accelerator),
-    ]
-    for label, module in targets:
-        for attr in ("memory_stats", "memory_stats_as_nested_dict"):
-            if not hasattr(module, attr):
-                continue
-            new_fn = _make_patched(getattr(module, attr))
-            if new_fn is None:
-                continue
-            try:
-                setattr(module, attr, new_fn)
-                patched.append(f"{label}.{attr}")
-            except (AttributeError, TypeError):
-                pass
-
-    # Try to patch the C-level function too (may be read-only on some builds).
-    try:
-        c_orig = torch_npu._C._npu_memoryStats
-        new_c = _make_patched(c_orig)
-        if new_c is not None:
-            torch_npu._C._npu_memoryStats = new_c
-            patched.append("_C._npu_memoryStats")
-    except (AttributeError, TypeError):
-        pass
-
-    if patched:
-        logger.info("[ZBAL] patched memory_stats paths for mix-alloc: %s", ", ".join(patched))
+    torch_npu.npu.memory.memory_stats_as_nested_dict = _patched
+    logger.info("[ZBAL] patched memory_stats_as_nested_dict for mix-alloc")
 
 
 def get_comm_name_from_group(
