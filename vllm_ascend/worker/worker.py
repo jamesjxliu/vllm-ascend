@@ -575,43 +575,46 @@ class NPUWorker(WorkerBase):
         # before zbal_init triggers "ub address out of bounds" in aclnnRmsNorm.
         # Skip profiling and compute KV cache budget conservatively.
         #
-        # Memory layout at zbal_init time:
-        #   total = weights + kv_cache + other_overhead + free
-        #   GVA   = pool - weights - kv_cache - other_overhead
-        #   Need: free >= GVA  =>  total >= pool  (auto-satisfied)
-        # But ~5 GB of unaccounted overhead (ACL/HCCL/driver) means we must
-        # reserve a buffer, otherwise free < GVA and zbal HalMemCreate fails.
-        # So: kv_cache = total - pool - buffer (capped by gpu_memory_utilization)
+        # At zbal_init time:
+        #   used_total = used_now + kv_cache  (used_now = weights + other)
+        #   GVA = pool - used_total = pool - used_now - kv_cache
+        #   Need GVA > 0  =>  kv_cache < pool - used_now
+        #   Need free >= GVA  =>  total >= pool  (auto-satisfied when pool < total)
+        # We reserve a minimum GVA (MIN_GVA_MB) for stability.
         if is_zbal_enabled() and not is_gva_inited():
             pool_mb = envs_ascend.VLLM_ASCEND_ZBAL_LOCAL_MEM_SIZE
             free_bytes, total_bytes = torch.npu.mem_get_info()
             total_mb = total_bytes // (1024**2)
-            # 5 GB buffer for ACL context, HCCL buffers, driver, etc.
-            BUFFER_MB = 5120
-            available_mb = total_mb - pool_mb - BUFFER_MB
+            free_mb = free_bytes // (1024**2)
+            used_mb = total_mb - free_mb  # weights + other already allocated
+
+            # Minimum GVA heap to keep after KV cache allocation
+            MIN_GVA_MB = 4096  # 4 GB
+            max_kv_mb = pool_mb - used_mb - MIN_GVA_MB
             # Cap by requested budget minus weights
             cap_bytes = (
                 self.requested_memory - self.model_runner.model_memory_usage
             )
             cap_mb = cap_bytes // (1024**2)
-            available_mb = min(available_mb, cap_mb)
+            available_mb = min(max_kv_mb, cap_mb)
 
             if available_mb <= 0:
                 logger.warning(
-                    "[ZBAL] KV cache available is %d MiB after reserving "
-                    "pool=%d MiB + buffer=%d MiB from total=%d MiB. "
-                    "VLLM_ASCEND_ZBAL_LOCAL_MEM_SIZE is too large for this "
-                    "device. Consider lowering it to at most %d MiB.",
-                    available_mb, pool_mb, BUFFER_MB, total_mb,
-                    total_mb - BUFFER_MB,
+                    "[ZBAL] KV cache available is %d MiB (pool=%d, used=%d, "
+                    "min_gva=%d, total=%d). VLLM_ASCEND_ZBAL_LOCAL_MEM_SIZE "
+                    "is too large or device memory too small. Consider "
+                    "lowering VLLM_ASCEND_ZBAL_LOCAL_MEM_SIZE to at most "
+                    "%d MiB.",
+                    available_mb, pool_mb, used_mb, MIN_GVA_MB, total_mb,
+                    used_mb + MIN_GVA_MB,
                 )
                 available_mb = 0
             else:
                 logger.info(
                     "Available KV cache memory: %.2f GiB (mix-alloc mode; "
-                    "pool=%d MiB, buffer=%d MiB, total=%d MiB, "
-                    "activation peak not profiled)",
-                    GiB(available_mb * (1024**2)), pool_mb, BUFFER_MB, total_mb,
+                    "pool=%d MiB, used=%d MiB, min_gva=%d MiB, total=%d MiB)",
+                    GiB(available_mb * (1024**2)), pool_mb, used_mb,
+                    MIN_GVA_MB, total_mb,
                 )
             available = available_mb * (1024**2)
             self.available_kv_cache_memory_bytes = available
