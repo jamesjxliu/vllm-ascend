@@ -17,6 +17,7 @@
 import torch
 from vllm.triton_utils import tl, triton
 
+from vllm_ascend.distributed.zbal_utils import is_zbal_enabled
 from vllm_ascend.ops.triton.triton_utils import get_vectorcore_num
 
 
@@ -263,10 +264,25 @@ def rope_forward_triton(
     rope_dim: int = -1,
     is_neox_style: bool = True,
 ) -> tuple[torch.Tensor, torch.Tensor]:
-    if not q.is_contiguous():
+    # zbal's SMA allocator may return tensors with non-standard memory layout
+    # that cause "VEC instruction error: ub address out of bounds" in triton
+    # kernels. Force contiguity for all pointer inputs.
+    if not q.is_contiguous() or is_zbal_enabled():
         q = q.contiguous()
-    if not k.is_contiguous():
+    if not k.is_contiguous() or is_zbal_enabled():
         k = k.contiguous()
+    if cos_sin_cache is not None and (
+        not cos_sin_cache.is_contiguous() or is_zbal_enabled()
+    ):
+        cos_sin_cache = cos_sin_cache.contiguous()
+    if positions is not None and (
+        not positions.is_contiguous() or is_zbal_enabled()
+    ):
+        positions = positions.contiguous()
+    if cos is not None and (not cos.is_contiguous() or is_zbal_enabled()):
+        cos = cos.contiguous()
+    if sin is not None and (not sin.is_contiguous() or is_zbal_enabled()):
+        sin = sin.contiguous()
 
     num_tokens, n_q_head, head_dim = q.shape
     n_kv_head = k.shape[1]
@@ -355,8 +371,20 @@ def rope_forward_triton_siso(
     rope_dim: int = -1,
     is_neox_style: bool = True,
 ) -> tuple[torch.Tensor, torch.Tensor]:
-    if not qk.is_contiguous():
+    if not qk.is_contiguous() or is_zbal_enabled():
         qk = qk.contiguous()
+    if cos_sin_cache is not None and (
+        not cos_sin_cache.is_contiguous() or is_zbal_enabled()
+    ):
+        cos_sin_cache = cos_sin_cache.contiguous()
+    if positions is not None and (
+        not positions.is_contiguous() or is_zbal_enabled()
+    ):
+        positions = positions.contiguous()
+    if cos is not None and (not cos.is_contiguous() or is_zbal_enabled()):
+        cos = cos.contiguous()
+    if sin is not None and (not sin.is_contiguous() or is_zbal_enabled()):
+        sin = sin.contiguous()
 
     num_tokens, n_head, head_dim = qk.shape
     assert rope_dim <= head_dim

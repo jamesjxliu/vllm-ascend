@@ -20,6 +20,7 @@ import torch
 from vllm.triton_utils import tl, triton
 from vllm.utils.torch_utils import direct_register_custom_op
 
+from vllm_ascend.distributed.zbal_utils import is_zbal_enabled
 from vllm_ascend.ops.triton.triton_utils import extract_slice, get_vectorcore_num, insert_slice
 
 
@@ -300,6 +301,19 @@ def triton_split_qkv_rmsnorm_mrope(
     q_size = num_q_heads * head_size
     kv_size = num_kv_heads * head_size
     num_tokens = qkv.shape[0]
+
+    # zbal's SMA allocator may return tensors with non-standard memory layout
+    # that cause "VEC instruction error: ub address out of bounds" in triton
+    # kernels. Force contiguity for all pointer inputs.
+    if is_zbal_enabled():
+        qkv = qkv.contiguous()
+        q_weight = q_weight.contiguous()
+        k_weight = k_weight.contiguous()
+        cos_sin = cos_sin.contiguous()
+        if q_bias is not None:
+            q_bias = q_bias.contiguous()
+        if k_bias is not None:
+            k_bias = k_bias.contiguous()
 
     gate_size = q_size if has_gate else 0
 

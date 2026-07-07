@@ -9,6 +9,7 @@ from vllm.model_executor.models.qwen3_vl import (
 )
 
 from vllm_ascend.ascend_forward_context import _EXTRA_CTX
+from vllm_ascend.distributed.zbal_utils import is_zbal_enabled
 from vllm_ascend.ops.rotary_embedding import AscendMRotaryEmbedding
 
 
@@ -40,6 +41,12 @@ def forward_with_split_qkv_rmsnorm_mrope(self, positions: torch.Tensor, hidden_s
             cos_sin = cos_sin.to(qkv.device)
         if cos_sin.dtype != qkv.dtype:
             cos_sin = cos_sin.to(qkv.dtype)
+        # zbal's SMA allocator may return non-contiguous memory for the
+        # indexed cos_sin tensor, which triggers "ub address out of bounds"
+        # in the fused triton kernel.
+        if is_zbal_enabled():
+            cos_sin = cos_sin.contiguous()
+            qkv = qkv.contiguous()
         q, k, v, _ = torch.ops.vllm.triton_split_qkv_rmsnorm_mrope(
             qkv=qkv,
             q_weight=self.q_norm.weight,
@@ -61,6 +68,12 @@ def forward_with_split_qkv_rmsnorm_mrope(self, positions: torch.Tensor, hidden_s
         k_by_head = k.view(*k.shape[:-1], k.shape[-1] // self.head_dim, self.head_dim)
         k_by_head = self.k_norm(k_by_head)
         k = k_by_head.view(k.shape)
+        # zbal: ensure contiguity before rotary embedding (triton kernel
+        # accesses raw pointers and is sensitive to memory layout).
+        if is_zbal_enabled():
+            q = q.contiguous()
+            k = k.contiguous()
+            positions = positions.contiguous()
         q, k = self.rotary_emb(positions, q, k)
     attn_output = self.attn(q, k, v)
     output, _ = self.o_proj(attn_output)
