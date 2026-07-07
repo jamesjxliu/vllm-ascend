@@ -16,6 +16,16 @@ def is_zbal_enabled() -> bool:
     return envs_ascend.VLLM_ASCEND_ZBAL_LOCAL_MEM_SIZE > 0
 
 
+def is_gva_inited() -> bool:
+    """Return whether the zbal GVA heap has been bootstrapped.
+
+    In standard mode, ``init_zbal`` sets this flag immediately.
+    In mix-alloc mode, the flag is set later by ``lazy_init_zbal_gva_mem``
+    so callers can decide whether to defer model execution.
+    """
+    return _gva_is_inited
+
+
 def get_dist_backend() -> str:
     return "zbal" if is_zbal_enabled() else "hccl"
 
