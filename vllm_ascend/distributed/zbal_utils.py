@@ -190,13 +190,14 @@ def _patch_npu_mem_get_info():
 def _patch_memory_stats_for_mix_alloc():
     """Wrap memory_stats paths for mix-alloc (get_device_stats not supported).
 
-    zbal mix allocator raises RuntimeError on ``_npu_memoryStats``. vLLM's
-    ``MemorySnapshot.measure()`` calls ``torch.accelerator.memory_stats(device)``
-    which forwards to ``torch_npu.npu.memory.memory_stats`` →
+    vLLM's ``MemorySnapshot.measure()`` calls
+    ``torch.accelerator.memory_reserved(device)`` →
+    ``torch_npu.npu.memory.memory_stats`` →
     ``memory_stats_as_nested_dict`` → ``torch_npu._C._npu_memoryStats``.
-    Patch the Python entry points so the error is converted to ``{}``.
-    Avoid patching ``torch_npu._C._npu_memoryStats`` directly because that
-    breaks the NPU runtime contract for aclnn* kernels.
+    The intermediate calls are direct function references, so patching only
+    module attributes does NOT intercept the chain. The C-level
+    ``_npu_memoryStats`` is the only choke point that all callers funnel
+    through, so it must be patched too.
     """
     try:
         import torch_npu
@@ -241,6 +242,19 @@ def _patch_memory_stats_for_mix_alloc():
                 patched.append(f"{label}.{attr}")
             except (AttributeError, TypeError):
                 pass
+
+    # Must patch the C-level function: memory_stats() calls
+    # memory_stats_as_nested_dict() via a direct function reference, not
+    # through the module attribute, so the Python patches above cannot
+    # intercept that call chain.
+    try:
+        c_orig = torch_npu._C._npu_memoryStats
+        new_c = _make_patched(c_orig)
+        if new_c is not None:
+            torch_npu._C._npu_memoryStats = new_c
+            patched.append("_C._npu_memoryStats")
+    except (AttributeError, TypeError):
+        pass
 
     if patched:
         logger.info("[ZBAL] patched memory_stats paths for mix-alloc: %s", ", ".join(patched))
