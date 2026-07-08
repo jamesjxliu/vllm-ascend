@@ -20,23 +20,21 @@ import torch.distributed
 import torch.distributed as dist
 import torch_npu
 
+from vllm_ascend.distributed.zbal_utils import is_zbal_enabled
+
 COMM_STREAM = None
 
 
 def async_all_to_all(input_, output_split_sizes, input_split_sizes, group, event=None):
     if output_split_sizes is None:
-        # Equal split (all2all)
         a2a_out = torch.empty_like(input_)
     else:
-        # Unequal split (all2all-v)
         a2a_out = input_.new_empty(
             size=[sum(output_split_sizes)] + list(input_.size()[1:]),
             dtype=input_.dtype,
             device=torch.npu.current_device(),
         )
-
-    if event:
-        # multi stream wait event
+    if event and not is_zbal_enabled():
         global COMM_STREAM
         if COMM_STREAM is None:
             COMM_STREAM = torch_npu.npu.Stream(device=torch.npu.current_device())

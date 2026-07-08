@@ -10,6 +10,7 @@ from vllm.config import CUDAGraphMode, VllmConfig
 from vllm.distributed import get_dp_group, get_ep_group, get_tensor_model_parallel_world_size
 from vllm.forward_context import BatchDescriptor, get_forward_context, set_forward_context
 
+import vllm_ascend.envs as envs_ascend
 from vllm_ascend.ascend_config import get_ascend_config
 from vllm_ascend.utils import (
     AscendDeviceType,
@@ -28,6 +29,7 @@ class MoECommType(Enum):
     MC2 = 1
     ALLTOALL = 2
     FUSED_MC2 = 3
+    ZBAL = 4
 
 
 _MRV2_IN_PROFILE_RUN: ContextVar[bool] = ContextVar("_MRV2_IN_PROFILE_RUN", default=False)
@@ -259,6 +261,7 @@ def select_moe_comm_method(num_tokens: int, vllm_config: VllmConfig, is_draft_mo
     """
     if not is_moe_model(vllm_config):
         return None
+
     mc2_tokens_capacity = get_mc2_tokens_capacity()
     soc_version = get_ascend_device_type()
     quant_type = getattr(
@@ -266,6 +269,21 @@ def select_moe_comm_method(num_tokens: int, vllm_config: VllmConfig, is_draft_mo
         "moe_quantize",
         getattr(vllm_config.model_config.hf_text_config, "quantize", None),
     )
+
+    # ZBAL MoE communication takes priority when explicitly enabled.
+    # ZBAL requires multi-rank all-to-all, so it is only selected when
+    # expert parallel is enabled with EP size > 1.
+    from vllm_ascend.distributed.zbal_utils import is_zbal_enabled
+    if is_zbal_enabled():
+        if not envs_ascend.VLLM_ASCEND_ZBAL_MOE_ENABLE:
+            return MoECommType.ALLTOALL
+        elif (
+            envs_ascend.VLLM_ASCEND_ZBAL_MOE_ENABLE
+            and envs_ascend.VLLM_ASCEND_ZBAL_LOCAL_MEM_SIZE > 0
+            and vllm_config.parallel_config.enable_expert_parallel
+            and get_ep_group().world_size > 1
+        ):
+            return MoECommType.ZBAL
 
     if not vllm_config.parallel_config.enable_expert_parallel or get_ep_group().world_size == 1:
         moe_comm_type = MoECommType.ALLGATHER

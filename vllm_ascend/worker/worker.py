@@ -95,13 +95,6 @@ class NPUWorker(WorkerBase):
         **kwargs,
     ):
         """Initialize the worker for Ascend."""
-        # zbal must be initialized BEFORE super().__init__(), which calls
-        # _init_device() → MemorySnapshot(). Once the default NPU allocator
-        # is touched, switch_to_allocator() fails with
-        # "Can't swap an already initialized allocator".
-        # Pass world_size / world_rank (matching the validated v0.18.0_zbal
-        # path). zbal's bootstrap communicator is global; mix-alloc mode
-        # supports PP > 1 by sharing one bootstrap across all ranks.
         if is_zbal_enabled():
             world_size = vllm_config.parallel_config.world_size
             logger.info(
@@ -110,7 +103,7 @@ class NPUWorker(WorkerBase):
                 local_rank,
                 rank,
             )
-            init_zbal(world_size, local_rank, rank)
+            init_zbal()
 
         if not envs_ascend.COMPILE_CUSTOM_KERNELS:
             logger.warning(
@@ -293,36 +286,10 @@ class NPUWorker(WorkerBase):
         torch.npu.empty_cache()
 
         # take current memory snapshot
-        # In zbal mix-alloc mode, zbal_init has already been called in
-        # __init__ (allocating the GVA heap), so free_memory will be low.
-        # Skip the free_memory check here; determine_available_memory has
-        # a dedicated mix-alloc fast path that computes KV cache budget
-        # from pool - used.
-        if is_zbal_enabled():
-            try:
-                self.init_snapshot = MemorySnapshot()
-            except RuntimeError as e:
-                if "do not support get_device_stats" in str(e):
-                    from vllm.utils.mem_utils import MemorySnapshot as _MS
-                    free_bytes, total_bytes = torch.npu.mem_get_info()
-                    self.init_snapshot = _MS.__new__(_MS)
-                    self.init_snapshot.free_memory = free_bytes
-                    self.init_snapshot.total_memory = total_bytes
-                    self.init_snapshot.torch_memory = 0
-                    self.init_snapshot.torch_peak = 0
-                    self.init_snapshot.weights_memory = 0
-                    self.init_snapshot.non_torch_memory = 0
-                    logger.warning(
-                        "[ZBAL] MemorySnapshot() failed in mix-alloc mode, "
-                        "using fallback with torch.npu.mem_get_info: "
-                        "free=%.2f GiB total=%.2f GiB",
-                        free_bytes / GiB_bytes,
-                        total_bytes / GiB_bytes,
-                    )
-                else:
-                    raise
-        else:
-            self.init_snapshot = MemorySnapshot()
+        # Note: in zbal mix-alloc mode, MemorySnapshot.measure has been
+        # patched (via init_zbal → _patch_memory_stats_for_mix_alloc) to
+        # use torch.npu.mem_get_info, so MemorySnapshot() works normally.
+        self.init_snapshot = MemorySnapshot()
         self.requested_memory = self.init_snapshot.total_memory * self.cache_config.gpu_memory_utilization
         if not is_zbal_enabled() and self.init_snapshot.free_memory < self.requested_memory:
             GiB = lambda b: round(b / GiB_bytes, 2)
@@ -405,7 +372,6 @@ class NPUWorker(WorkerBase):
             )
             return kv_cache_memory_bytes
 
-        # zbal mix-alloc: KV cache budget follows v0.18.0_zbal logic.
         # KV cache and GVA heap share the zbal-managed memory pool
         # (VLLM_ASCEND_ZBAL_LOCAL_MEM_SIZE). The pool is carved into:
         #   - used (weights loaded before zbal_init, in DMA VMM)
