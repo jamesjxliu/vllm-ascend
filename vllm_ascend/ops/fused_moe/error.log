@@ -1,0 +1,36 @@
+68. Try increasing `gpu_memory_utilization` or decreasing `max_model_len` when initializing the engine. See https://docs.vllm.ai/en/latest/configuration/conserving_memory/ for more details.
+(EngineCore_DP3 pid=170239) Process EngineCore_DP3:
+(EngineCore_DP3 pid=170239) Traceback (most recent call last):
+(EngineCore_DP3 pid=170239)   File "/usr/local/python3.11.10/lib/python3.11/multiprocessing/process.py", line 314, in _bootstrap
+(EngineCore_DP3 pid=170239)     self.run()
+(EngineCore_DP3 pid=170239)   File "/usr/local/python3.11.10/lib/python3.11/multiprocessing/process.py", line 108, in run
+(EngineCore_DP3 pid=170239)     self._target(*self._args, **self._kwargs)
+(EngineCore_DP3 pid=170239)   File "/home/p00801009/vllm-ascend/vllm_ascend/patch/platform/patch_balance_schedule.py", line 672, in run_engine_core
+(EngineCore_DP3 pid=170239)     return _ORIGINAL_RUN_ENGINE_CORE(*args, dp_rank=dp_rank, local_dp_rank=local_dp_rank, **kwargs)
+(EngineCore_DP3 pid=170239)            ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+(EngineCore_DP3 pid=170239)   File "/usr/local/python3.11.10/lib/python3.11/site-packages/vllm/v1/engine/core.py", line 1140, in run_engine_core
+(EngineCore_DP3 pid=170239)     raise e
+(EngineCore_DP3 pid=170239)   File "/usr/local/python3.11.10/lib/python3.11/site-packages/vllm/v1/engine/core.py", line 1102, in run_engine_core
+(EngineCore_DP3 pid=170239)     engine_core = DPEngineCoreProc(*args, **kwargs)
+(EngineCore_DP3 pid=170239)                   ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+(EngineCore_DP3 pid=170239)   File "/usr/local/python3.11.10/lib/python3.11/site-packages/vllm/v1/engine/core.py", line 1644, in __init__
+(EngineCore_DP3 pid=170239)     super().__init__(
+(EngineCore_DP3 pid=170239)   File "/usr/local/python3.11.10/lib/python3.11/site-packages/vllm/tracing/otel.py", line 178, in sync_wrapper
+(EngineCore_DP3 pid=170239)     return func(*args, **kwargs)
+(EngineCore_DP3 pid=170239)            ^^^^^^^^^^^^^^^^^^^^^
+(EngineCore_DP3 pid=170239)   File "/usr/local/python3.11.10/lib/python3.11/site-packages/vllm/v1/engine/core.py", line 876, in __init__
+(EngineCore_DP3 pid=170239)     super().__init__(
+(EngineCore_DP3 pid=170239)   File "/usr/local/python3.11.10/lib/python3.11/site-packages/vllm/v1/engine/core.py", line 128, in __init__
+(EngineCore_DP3 pid=170239)     kv_cache_config = self._initialize_kv_caches(vllm_config)
+(EngineCore_DP3 pid=170239)                       ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+(EngineCore_DP3 pid=170239)   File "/usr/local/python3.11.10/lib/python3.11/site-packages/vllm/tracing/otel.py", line 178, in sync_wrapper
+(EngineCore_DP3 pid=170239)     return func(*args, **kwargs)
+(EngineCore_DP3 pid=170239)            ^^^^^^^^^^^^^^^^^^^^^
+(EngineCore_DP3 pid=170239)   File "/usr/local/python3.11.10/lib/python3.11/site-packages/vllm/v1/engine/core.py", line 261, in _initialize_kv_caches
+(EngineCore_DP3 pid=170239)     kv_cache_configs = get_kv_cache_configs(
+(EngineCore_DP3 pid=170239)                        ^^^^^^^^^^^^^^^^^^^^^
+(EngineCore_DP3 pid=170239)   File "/usr/local/python3.11.10/lib/python3.11/site-packages/vllm/v1/core/kv_cache_utils.py", line 2013, in get_kv_cache_configs
+(EngineCore_DP3 pid=170239)     _check_enough_kv_cache_memory(
+(EngineCore_DP3 pid=170239)   File "/usr/local/python3.11.10/lib/python3.11/site-packages/vllm/v1/core/kv_cache_utils.py", line 714, in _check_enough_kv_cache_memory
+(EngineCore_DP3 pid=170239)     raise ValueError(
+(EngineCore_DP3 pid=170239) ValueError: To serve at least one request with the models's max seq len (1048576), (339.07 GiB KV cache is needed, which is larger than the available KV cache memory (27.15 GiB). Based on the available memory, the estimated maximum model leng
