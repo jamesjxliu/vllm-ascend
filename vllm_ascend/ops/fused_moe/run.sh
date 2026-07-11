@@ -161,7 +161,6 @@ NEW_ARGS=(
     --speculative-config '{"num_speculative_tokens": 1, "method": "mtp", "enforce_eager": true}' \
     --compilation-config '{"cudagraph_mode": "FULL_DECODE_ONLY"}'\
     --async-scheduling \
-    --no-disable-hybrid-kv-cache-manager \
     --kv-transfer-config "$KV_CONFIG" \
     --additional-config '
     {
