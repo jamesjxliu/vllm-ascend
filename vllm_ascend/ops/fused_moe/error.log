@@ -1,55 +1,142 @@
-I20260710 14:45:21.624171 188611 ascend_direct_transport.cpp:136] Set transfer timeout to:33064
-I20260710 14:45:21.628104 196754 ascend_direct_transport.cpp:668] AscendDirectTransport query thread started
-(Worker_DP3_TP0_EP12 pid=188611) WARNING 07-10 14:45:21 [base.py:189] Initializing KVConnectorBase_V1. This API is experimental and subject to change in the future as we iterate the design.
-I20260710 14:45:21.645951 189178 ascend_direct_transport.cpp:295] Success to initialize adxl engine:80.5.17.34:21567 with device_id:3, pid:189178
-I20260710 14:45:21.645985 189178 ascend_direct_transport.cpp:136] Set transfer timeout to:33064
-I20260710 14:45:21.645998 188755 ascend_direct_transport.cpp:295] Success to initialize adxl engine:80.5.17.34:21374 with device_id:1, pid:188755
-I20260710 14:45:21.646023 188755 ascend_direct_transport.cpp:136] Set transfer timeout to:33064
-I20260710 14:45:21.646044 188968 ascend_direct_transport.cpp:295] Success to initialize adxl engine:80.5.17.34:21439 with device_id:2, pid:188968
-I20260710 14:45:21.646075 188968 ascend_direct_transport.cpp:136] Set transfer timeout to:33064
-I20260710 14:45:21.647076 196829 ascend_direct_transport.cpp:668] AscendDirectTransport query thread started
-I20260710 14:45:21.647212 196831 ascend_direct_transport.cpp:668] AscendDirectTransport query thread started
-I20260710 14:45:21.647284 196834 ascend_direct_transport.cpp:668] AscendDirectTransport query thread started
-(Worker_DP3_TP3_EP15 pid=189178) WARNING 07-10 14:45:21 [base.py:189] Initializing KVConnectorBase_V1. This API is experimental and subject to change in the future as we iterate the design.
-(Worker_DP3_TP1_EP13 pid=188755) WARNING 07-10 14:45:21 [base.py:189] Initializing KVConnectorBase_V1. This API is experimental and subject to change in the future as we iterate the design.
-(Worker_DP3_TP2_EP14 pid=188968) WARNING 07-10 14:45:21 [base.py:189] Initializing KVConnectorBase_V1. This API is experimental and subject to change in the future as we iterate the design.
-(Worker_DP2_TP1_EP9 pid=188785) ERROR 07-10 14:45:22 [multiproc_executor.py:962] WorkerProc hit an exception.
-(Worker_DP2_TP1_EP9 pid=188785) ERROR 07-10 14:45:22 [multiproc_executor.py:962] Traceback (most recent call last):
-(Worker_DP2_TP1_EP9 pid=188785) ERROR 07-10 14:45:22 [multiproc_executor.py:962]   File "/usr/local/python3.11.10/lib/python3.11/site-packages/vllm/v1/executor/multiproc_executor.py", line 957, in worker_busy_loop
-(Worker_DP2_TP1_EP9 pid=188785) ERROR 07-10 14:45:22 [multiproc_executor.py:962]     output = func(*args, **kwargs)
-(Worker_DP2_TP1_EP9 pid=188785) ERROR 07-10 14:45:22 [multiproc_executor.py:962]              ^^^^^^^^^^^^^^^^^^^^^
-(Worker_DP2_TP1_EP9 pid=188785) ERROR 07-10 14:45:22 [multiproc_executor.py:962]   File "/usr/local/python3.11.10/lib/python3.11/site-packages/vllm/v1/worker/worker_base.py", line 311, in initialize_from_config
-(Worker_DP2_TP1_EP9 pid=188785) ERROR 07-10 14:45:22 [multiproc_executor.py:962]     self.worker.initialize_from_config(kv_cache_config)  # type: ignore
-(Worker_DP2_TP1_EP9 pid=188785) ERROR 07-10 14:45:22 [multiproc_executor.py:962]     ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
-(Worker_DP2_TP1_EP9 pid=188785) ERROR 07-10 14:45:22 [multiproc_executor.py:962]   File "/home/p00801009/vllm-ascend/vllm_ascend/worker/worker.py", line 740, in initialize_from_config
-(Worker_DP2_TP1_EP9 pid=188785) ERROR 07-10 14:45:22 [multiproc_executor.py:962]     self.model_runner.initialize_kv_cache(kv_cache_config)
-(Worker_DP2_TP1_EP9 pid=188785) ERROR 07-10 14:45:22 [multiproc_executor.py:962]   File "/home/p00801009/vllm-ascend/vllm_ascend/worker/model_runner_v1.py", line 3487, in initialize_kv_cache
-(Worker_DP2_TP1_EP9 pid=188785) ERROR 07-10 14:45:22 [multiproc_executor.py:962]     get_kv_transfer_group().register_kv_caches(kv_caches)
-(Worker_DP2_TP1_EP9 pid=188785) ERROR 07-10 14:45:22 [multiproc_executor.py:962]   File "/usr/local/python3.11.10/lib/python3.11/site-packages/vllm/distributed/kv_transfer/kv_connector/v1/multi_connector.py", line 220, in register_kv_caches
-(Worker_DP2_TP1_EP9 pid=188785) ERROR 07-10 14:45:22 [multiproc_executor.py:962]     c.register_kv_caches(kv_caches)
-(Worker_DP2_TP1_EP9 pid=188785) ERROR 07-10 14:45:22 [multiproc_executor.py:962]   File "/home/p00801009/vllm-ascend/vllm_ascend/distributed/kv_transfer/kv_p2p/mooncake_connector.py", line 908, in register_kv_caches
-(Worker_DP2_TP1_EP9 pid=188785) ERROR 07-10 14:45:22 [multiproc_executor.py:962]     self.connector_worker.register_kv_caches(kv_caches)
-(Worker_DP2_TP1_EP9 pid=188785) ERROR 07-10 14:45:22 [multiproc_executor.py:962]   File "/home/p00801009/vllm-ascend/vllm_ascend/distributed/kv_transfer/kv_p2p/mooncake_connector.py", line 1247, in register_kv_caches
-(Worker_DP2_TP1_EP9 pid=188785) ERROR 07-10 14:45:22 [multiproc_executor.py:962]     first_kv_cache_tuple[0].size(-1) != first_kv_cache_tuple[1].size(-1) and len(first_kv_cache_tuple) == 2
-(Worker_DP2_TP1_EP9 pid=188785) ERROR 07-10 14:45:22 [multiproc_executor.py:962]                                         ~~~~~~~~~~~~~~~~~~~~^^^
-(Worker_DP2_TP1_EP9 pid=188785) ERROR 07-10 14:45:22 [multiproc_executor.py:962] IndexError: list index out of range
-(Worker_DP2_TP1_EP9 pid=188785) ERROR 07-10 14:45:22 [multiproc_executor.py:962] Traceback (most recent call last):
-(Worker_DP2_TP1_EP9 pid=188785) ERROR 07-10 14:45:22 [multiproc_executor.py:962]   File "/usr/local/python3.11.10/lib/python3.11/site-packages/vllm/v1/executor/multiproc_executor.py", line 957, in worker_busy_loop
-(Worker_DP2_TP1_EP9 pid=188785) ERROR 07-10 14:45:22 [multiproc_executor.py:962]     output = func(*args, **kwargs)
-(Worker_DP2_TP1_EP9 pid=188785) ERROR 07-10 14:45:22 [multiproc_executor.py:962]              ^^^^^^^^^^^^^^^^^^^^^
-(Worker_DP2_TP1_EP9 pid=188785) ERROR 07-10 14:45:22 [multiproc_executor.py:962]   File "/usr/local/python3.11.10/lib/python3.11/site-packages/vllm/v1/worker/worker_base.py", line 311, in initialize_from_config
-(Worker_DP2_TP1_EP9 pid=188785) ERROR 07-10 14:45:22 [multiproc_executor.py:962]     self.worker.initialize_from_config(kv_cache_config)  # type: ignore
-(Worker_DP2_TP1_EP9 pid=188785) ERROR 07-10 14:45:22 [multiproc_executor.py:962]     ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
-(Worker_DP2_TP1_EP9 pid=188785) ERROR 07-10 14:45:22 [multiproc_executor.py:962]   File "/home/p00801009/vllm-ascend/vllm_ascend/worker/worker.py", line 740, in initialize_from_config
-(Worker_DP2_TP1_EP9 pid=188785) ERROR 07-10 14:45:22 [multiproc_executor.py:962]     self.model_runner.initialize_kv_cache(kv_cache_config)
-(Worker_DP2_TP1_EP9 pid=188785) ERROR 07-10 14:45:22 [multiproc_executor.py:962]   File "/home/p00801009/vllm-ascend/vllm_ascend/worker/model_runner_v1.py", line 3487, in initialize_kv_cache
-(Worker_DP2_TP1_EP9 pid=188785) ERROR 07-10 14:45:22 [multiproc_executor.py:962]     get_kv_transfer_group().register_kv_caches(kv_caches)
-(Worker_DP2_TP1_EP9 pid=188785) ERROR 07-10 14:45:22 [multiproc_executor.py:962]   File "/usr/local/python3.11.10/lib/python3.11/site-packages/vllm/distributed/kv_transfer/kv_connector/v1/multi_connector.py", line 220, in register_kv_caches
-(Worker_DP2_TP1_EP9 pid=188785) ERROR 07-10 14:45:22 [multiproc_executor.py:962]     c.register_kv_caches(kv_caches)
-(Worker_DP2_TP1_EP9 pid=188785) ERROR 07-10 14:45:22 [multiproc_executor.py:962]   File "/home/p00801009/vllm-ascend/vllm_ascend/distributed/kv_transfer/kv_p2p/mooncake_connector.py", line 908, in register_kv_caches
-(Worker_DP2_TP1_EP9 pid=188785) ERROR 07-10 14:45:22 [multiproc_executor.py:962]     self.connector_worker.register_kv_caches(kv_caches)
-(Worker_DP2_TP1_EP9 pid=188785) ERROR 07-10 14:45:22 [multiproc_executor.py:962]   File "/home/p00801009/vllm-ascend/vllm_ascend/distributed/kv_transfer/kv_p2p/mooncake_connector.py", line 1247, in register_kv_caches
-(Worker_DP2_TP1_EP9 pid=188785) ERROR 07-10 14:45:22 [multiproc_executor.py:962]     first_kv_cache_tuple[0].size(-1) != first_kv_cache_tuple[1].size(-1) and len(first_kv_cache_tuple) == 2
-(Worker_DP2_TP1_EP9 pid=188785) ERROR 07-10 14:45:22 [multiproc_executor.py:962]                                         ~~~~~~~~~~~~~~~~~~~~^^^
-(Worker_DP2_TP1_EP9 pid=188785) ERROR 07-10 14:45:22 [multiproc_executor.py:962] IndexError: list index out of range
-(Worker_DP2_TP1_EP9 pid=188785) ERROR 07-10 14:45:22 [multiproc_executor.py:962]
+WARNING: Logging before InitGoogleLogging() is written to STDERR
+W20260711 09:36:04.351783 409908 transfer_engine_py.cpp:77] Using default malloc/free for protocol: ascend
+I20260711 09:36:04.351871 409908 transfer_engine_impl.cpp:586] Metrics reporting is disabled (set MC_TE_METRIC=1 to enable)
+I20260711 09:36:04.351883 409908 transfer_engine_impl.cpp:105] Transfer Engine parseHostNameWithPort. server_name: 80.5.17.34 port: 12001
+(Worker_TP3_EP3 pid=409849) INFO 07-11 09:36:04 [factory.py:64] Creating v1 connector with name: AscendMultiConnector and engine_id: 9539a3dd-4a29-400c-b1bf-b359cce91363-c892c83035064706b9f992c2b7d14bb6
+I20260711 09:36:04.352035 409908 transfer_engine_impl.cpp:172] Transfer Engine RPC using P2P handshake, listening on 80.5.17.34:16297
+(Worker_TP3_EP3 pid=409849) WARNING 07-11 09:36:04 [base.py:189] Initializing KVConnectorBase_V1. This API is experimental and subject to change in the future as we iterate the design.
+I20260711 09:36:04.352238 409908 ascend_direct_transport.cpp:94] install AscendDirectTransport for: 80.5.17.34:16297
+I20260711 09:36:04.352272 409908 ascend_direct_transport.cpp:608] Set device id to:12
+I20260711 09:36:04.352277 409908 ascend_direct_transport.cpp:620] Find available between 21200 and 21300
+I20260711 09:36:04.352324 409908 ascend_direct_transport.cpp:573] AscendDirectTransport set segment desc: host_ip=80.5.17.34, host_port=21271, deviceLogicId=4
+I20260711 09:36:04.352344 409908 ascend_direct_transport.cpp:289] Set adxl engine name to 80.5.17.34:21271
+WARNING: Logging before InitGoogleLogging() is written to STDERR
+W20260711 09:36:04.357520 409731 transfer_engine_py.cpp:77] Using default malloc/free for protocol: ascend
+I20260711 09:36:04.357620 409731 transfer_engine_impl.cpp:586] Metrics reporting is disabled (set MC_TE_METRIC=1 to enable)
+I20260711 09:36:04.357633 409731 transfer_engine_impl.cpp:105] Transfer Engine parseHostNameWithPort. server_name: 80.5.17.34 port: 12001
+I20260711 09:36:04.357745 409731 transfer_engine_impl.cpp:172] Transfer Engine RPC using P2P handshake, listening on 80.5.17.34:16005
+I20260711 09:36:04.357923 409731 ascend_direct_transport.cpp:94] install AscendDirectTransport for: 80.5.17.34:16005
+I20260711 09:36:04.357951 409731 ascend_direct_transport.cpp:608] Set device id to:9
+I20260711 09:36:04.357956 409731 ascend_direct_transport.cpp:620] Find available between 20900 and 21000
+I20260711 09:36:04.358002 409731 ascend_direct_transport.cpp:573] AscendDirectTransport set segment desc: host_ip=80.5.17.34, host_port=20928, deviceLogicId=1
+I20260711 09:36:04.358022 409731 ascend_direct_transport.cpp:289] Set adxl engine name to 80.5.17.34:20928
+WARNING: Logging before InitGoogleLogging() is written to STDERR
+W20260711 09:36:04.358297 409790 transfer_engine_py.cpp:77] Using default malloc/free for protocol: ascend
+I20260711 09:36:04.358402 409790 transfer_engine_impl.cpp:586] Metrics reporting is disabled (set MC_TE_METRIC=1 to enable)
+I20260711 09:36:04.358414 409790 transfer_engine_impl.cpp:105] Transfer Engine parseHostNameWithPort. server_name: 80.5.17.34 port: 12001
+WARNING: Logging before InitGoogleLogging() is written to STDERR
+W20260711 09:36:04.358404 409849 transfer_engine_py.cpp:77] Using default malloc/free for protocol: ascend
+I20260711 09:36:04.358501 409849 transfer_engine_impl.cpp:586] Metrics reporting is disabled (set MC_TE_METRIC=1 to enable)
+I20260711 09:36:04.358521 409849 transfer_engine_impl.cpp:105] Transfer Engine parseHostNameWithPort. server_name: 80.5.17.34 port: 12001
+I20260711 09:36:04.358541 409790 transfer_engine_impl.cpp:172] Transfer Engine RPC using P2P handshake, listening on 80.5.17.34:15173
+I20260711 09:36:04.358603 409849 transfer_engine_impl.cpp:172] Transfer Engine RPC using P2P handshake, listening on 80.5.17.34:15145
+I20260711 09:36:04.358703 409790 ascend_direct_transport.cpp:94] install AscendDirectTransport for: 80.5.17.34:15173
+I20260711 09:36:04.358737 409790 ascend_direct_transport.cpp:608] Set device id to:10
+I20260711 09:36:04.358743 409790 ascend_direct_transport.cpp:620] Find available between 21000 and 21100
+I20260711 09:36:04.358791 409790 ascend_direct_transport.cpp:573] AscendDirectTransport set segment desc: host_ip=80.5.17.34, host_port=21076, deviceLogicId=2
+I20260711 09:36:04.358812 409790 ascend_direct_transport.cpp:289] Set adxl engine name to 80.5.17.34:21076
+I20260711 09:36:04.358815 409849 ascend_direct_transport.cpp:94] install AscendDirectTransport for: 80.5.17.34:15145
+I20260711 09:36:04.358844 409849 ascend_direct_transport.cpp:608] Set device id to:11
+I20260711 09:36:04.358855 409849 ascend_direct_transport.cpp:620] Find available between 21100 and 21200
+I20260711 09:36:04.358886 409849 ascend_direct_transport.cpp:573] AscendDirectTransport set segment desc: host_ip=80.5.17.34, host_port=21100, deviceLogicId=3
+I20260711 09:36:04.358906 409849 ascend_direct_transport.cpp:289] Set adxl engine name to 80.5.17.34:21100
+I20260711 09:36:04.706280 409694 ascend_direct_transport.cpp:295] Success to initialize adxl engine:80.5.17.34:20841 with device_id:0, pid:409694
+I20260711 09:36:04.706311 409694 ascend_direct_transport.cpp:136] Set transfer timeout to:33064
+I20260711 09:36:04.706318 410026 ascend_direct_transport.cpp:295] Success to initialize adxl engine:80.5.17.34:21438 with device_id:6, pid:410026
+I20260711 09:36:04.706337 410026 ascend_direct_transport.cpp:136] Set transfer timeout to:33064
+I20260711 09:36:04.706514 409908 ascend_direct_transport.cpp:295] Success to initialize adxl engine:80.5.17.34:21271 with device_id:4, pid:409908
+I20260711 09:36:04.706543 409908 ascend_direct_transport.cpp:136] Set transfer timeout to:33064
+I20260711 09:36:04.706619 409967 ascend_direct_transport.cpp:295] Success to initialize adxl engine:80.5.17.34:21368 with device_id:5, pid:409967
+I20260711 09:36:04.706655 409967 ascend_direct_transport.cpp:136] Set transfer timeout to:33064
+I20260711 09:36:04.707353 414898 ascend_direct_transport.cpp:668] AscendDirectTransport query thread started
+I20260711 09:36:04.707352 410085 ascend_direct_transport.cpp:295] Success to initialize adxl engine:80.5.17.34:21557 with device_id:7, pid:410085
+I20260711 09:36:04.707396 410085 ascend_direct_transport.cpp:136] Set transfer timeout to:33064
+I20260711 09:36:04.707422 414897 ascend_direct_transport.cpp:668] AscendDirectTransport query thread started
+I20260711 09:36:04.707623 414906 ascend_direct_transport.cpp:668] AscendDirectTransport query thread started
+(Worker_TP6_EP6 pid=410026) WARNING 07-11 09:36:04 [base.py:189] Initializing KVConnectorBase_V1. This API is experimental and subject to change in the future as we iterate the design.
+(Worker_TP0_EP0 pid=409694) WARNING 07-11 09:36:04 [base.py:189] Initializing KVConnectorBase_V1. This API is experimental and subject to change in the future as we iterate the design.
+I20260711 09:36:04.708114 414922 ascend_direct_transport.cpp:668] AscendDirectTransport query thread started
+(Worker_TP4_EP4 pid=409908) WARNING 07-11 09:36:04 [base.py:189] Initializing KVConnectorBase_V1. This API is experimental and subject to change in the future as we iterate the design.
+I20260711 09:36:04.708667 414932 ascend_direct_transport.cpp:668] AscendDirectTransport query thread started
+(Worker_TP5_EP5 pid=409967) WARNING 07-11 09:36:04 [base.py:189] Initializing KVConnectorBase_V1. This API is experimental and subject to change in the future as we iterate the design.
+(Worker_TP7_EP7 pid=410085) WARNING 07-11 09:36:04 [base.py:189] Initializing KVConnectorBase_V1. This API is experimental and subject to change in the future as we iterate the design.
+(Worker_TP6_EP6 pid=410026) ERROR 07-11 09:36:04 [multiproc_executor.py:962] WorkerProc hit an exception.
+(Worker_TP6_EP6 pid=410026) ERROR 07-11 09:36:04 [multiproc_executor.py:962] Traceback (most recent call last):
+(Worker_TP6_EP6 pid=410026) ERROR 07-11 09:36:04 [multiproc_executor.py:962]   File "/usr/local/python3.11.10/lib/python3.11/site-packages/vllm/v1/executor/multiproc_executor.py", line 957, in worker_busy_loop
+(Worker_TP6_EP6 pid=410026) ERROR 07-11 09:36:04 [multiproc_executor.py:962]     output = func(*args, **kwargs)
+(Worker_TP6_EP6 pid=410026) ERROR 07-11 09:36:04 [multiproc_executor.py:962]              ^^^^^^^^^^^^^^^^^^^^^
+(Worker_TP6_EP6 pid=410026) ERROR 07-11 09:36:04 [multiproc_executor.py:962]   File "/usr/local/python3.11.10/lib/python3.11/site-packages/vllm/v1/worker/worker_base.py", line 311, in initialize_from_config
+(Worker_TP6_EP6 pid=410026) ERROR 07-11 09:36:04 [multiproc_executor.py:962]     self.worker.initialize_from_config(kv_cache_config)  # type: ignore
+(Worker_TP6_EP6 pid=410026) ERROR 07-11 09:36:04 [multiproc_executor.py:962]     ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+(Worker_TP6_EP6 pid=410026) ERROR 07-11 09:36:04 [multiproc_executor.py:962]   File "/home/p00801009/vllm-ascend/vllm_ascend/worker/worker.py", line 731, in initialize_from_config
+(Worker_TP6_EP6 pid=410026) ERROR 07-11 09:36:04 [multiproc_executor.py:962]     ensure_kv_transfer_initialized(self.vllm_config, kv_cache_config)
+(Worker_TP6_EP6 pid=410026) ERROR 07-11 09:36:04 [multiproc_executor.py:962]   File "/usr/local/python3.11.10/lib/python3.11/site-packages/vllm/distributed/kv_transfer/kv_transfer_state.py", line 67, in ensure_kv_transfer_initialized
+(Worker_TP6_EP6 pid=410026) ERROR 07-11 09:36:04 [multiproc_executor.py:962]     _KV_CONNECTOR_AGENT = KVConnectorFactory.create_connector(
+(Worker_TP6_EP6 pid=410026) ERROR 07-11 09:36:04 [multiproc_executor.py:962]                           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+(Worker_TP6_EP6 pid=410026) ERROR 07-11 09:36:04 [multiproc_executor.py:962]   File "/usr/local/python3.11.10/lib/python3.11/site-packages/vllm/distributed/kv_transfer/kv_connector/factory.py", line 82, in create_connector
+(Worker_TP6_EP6 pid=410026) ERROR 07-11 09:36:04 [multiproc_executor.py:962]     return connector_cls(config, role, kv_cache_config)
+(Worker_TP6_EP6 pid=410026) ERROR 07-11 09:36:04 [multiproc_executor.py:962]            ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+(Worker_TP6_EP6 pid=410026) ERROR 07-11 09:36:04 [multiproc_executor.py:962]   File "/home/p00801009/vllm-ascend/vllm_ascend/distributed/kv_transfer/ascend_multi_connector.py", line 28, in __init__
+(Worker_TP6_EP6 pid=410026) ERROR 07-11 09:36:04 [multiproc_executor.py:962]     assert vllm_config.scheduler_config.disable_hybrid_kv_cache_manager or self._all_support_hma, (
+(Worker_TP6_EP6 pid=410026) ERROR 07-11 09:36:04 [multiproc_executor.py:962]            ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+(Worker_TP6_EP6 pid=410026) ERROR 07-11 09:36:04 [multiproc_executor.py:962] AssertionError: HMA should not be enabled unless all sub-connectors support it
+(Worker_TP6_EP6 pid=410026) ERROR 07-11 09:36:04 [multiproc_executor.py:962] Traceback (most recent call last):
+(Worker_TP6_EP6 pid=410026) ERROR 07-11 09:36:04 [multiproc_executor.py:962]   File "/usr/local/python3.11.10/lib/python3.11/site-packages/vllm/v1/executor/multiproc_executor.py", line 957, in worker_busy_loop
+(Worker_TP6_EP6 pid=410026) ERROR 07-11 09:36:04 [multiproc_executor.py:962]     output = func(*args, **kwargs)
+(Worker_TP6_EP6 pid=410026) ERROR 07-11 09:36:04 [multiproc_executor.py:962]              ^^^^^^^^^^^^^^^^^^^^^
+(Worker_TP6_EP6 pid=410026) ERROR 07-11 09:36:04 [multiproc_executor.py:962]   File "/usr/local/python3.11.10/lib/python3.11/site-packages/vllm/v1/worker/worker_base.py", line 311, in initialize_from_config
+(Worker_TP6_EP6 pid=410026) ERROR 07-11 09:36:04 [multiproc_executor.py:962]     self.worker.initialize_from_config(kv_cache_config)  # type: ignore
+(Worker_TP6_EP6 pid=410026) ERROR 07-11 09:36:04 [multiproc_executor.py:962]     ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+(Worker_TP6_EP6 pid=410026) ERROR 07-11 09:36:04 [multiproc_executor.py:962]   File "/home/p00801009/vllm-ascend/vllm_ascend/worker/worker.py", line 731, in initialize_from_config
+(Worker_TP6_EP6 pid=410026) ERROR 07-11 09:36:04 [multiproc_executor.py:962]     ensure_kv_transfer_initialized(self.vllm_config, kv_cache_config)
+(Worker_TP6_EP6 pid=410026) ERROR 07-11 09:36:04 [multiproc_executor.py:962]   File "/usr/local/python3.11.10/lib/python3.11/site-packages/vllm/distributed/kv_transfer/kv_transfer_state.py", line 67, in ensure_kv_transfer_initialized
+(Worker_TP6_EP6 pid=410026) ERROR 07-11 09:36:04 [multiproc_executor.py:962]     _KV_CONNECTOR_AGENT = KVConnectorFactory.create_connector(
+(Worker_TP6_EP6 pid=410026) ERROR 07-11 09:36:04 [multiproc_executor.py:962]                           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+(Worker_TP6_EP6 pid=410026) ERROR 07-11 09:36:04 [multiproc_executor.py:962]   File "/usr/local/python3.11.10/lib/python3.11/site-packages/vllm/distributed/kv_transfer/kv_connector/factory.py", line 82, in create_connector
+(Worker_TP6_EP6 pid=410026) ERROR 07-11 09:36:04 [multiproc_executor.py:962]     return connector_cls(config, role, kv_cache_config)
+(Worker_TP6_EP6 pid=410026) ERROR 07-11 09:36:04 [multiproc_executor.py:962]            ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+(Worker_TP6_EP6 pid=410026) ERROR 07-11 09:36:04 [multiproc_executor.py:962]   File "/home/p00801009/vllm-ascend/vllm_ascend/distributed/kv_transfer/ascend_multi_connector.py", line 28, in __init__
+(Worker_TP6_EP6 pid=410026) ERROR 07-11 09:36:04 [multiproc_executor.py:962]     assert vllm_config.scheduler_config.disable_hybrid_kv_cache_manager or self._all_support_hma, (
+(Worker_TP6_EP6 pid=410026) ERROR 07-11 09:36:04 [multiproc_executor.py:962]            ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+(Worker_TP6_EP6 pid=410026) ERROR 07-11 09:36:04 [multiproc_executor.py:962] AssertionError: HMA should not be enabled unless all sub-connectors support it
+(Worker_TP6_EP6 pid=410026) ERROR 07-11 09:36:04 [multiproc_executor.py:962]
+(Worker_TP0_EP0 pid=409694) ERROR 07-11 09:36:04 [multiproc_executor.py:962] WorkerProc hit an exception.
+(Worker_TP0_EP0 pid=409694) ERROR 07-11 09:36:04 [multiproc_executor.py:962] Traceback (most recent call last):
+(Worker_TP0_EP0 pid=409694) ERROR 07-11 09:36:04 [multiproc_executor.py:962]   File "/usr/local/python3.11.10/lib/python3.11/site-packages/vllm/v1/executor/multiproc_executor.py", line 957, in worker_busy_loop
+(Worker_TP0_EP0 pid=409694) ERROR 07-11 09:36:04 [multiproc_executor.py:962]     output = func(*args, **kwargs)
+(Worker_TP0_EP0 pid=409694) ERROR 07-11 09:36:04 [multiproc_executor.py:962]              ^^^^^^^^^^^^^^^^^^^^^
+(Worker_TP0_EP0 pid=409694) ERROR 07-11 09:36:04 [multiproc_executor.py:962]   File "/usr/local/python3.11.10/lib/python3.11/site-packages/vllm/v1/worker/worker_base.py", line 311, in initialize_from_config
+(Worker_TP0_EP0 pid=409694) ERROR 07-11 09:36:04 [multiproc_executor.py:962]     self.worker.initialize_from_config(kv_cache_config)  # type: ignore
+(Worker_TP0_EP0 pid=409694) ERROR 07-11 09:36:04 [multiproc_executor.py:962]     ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+(Worker_TP0_EP0 pid=409694) ERROR 07-11 09:36:04 [multiproc_executor.py:962]   File "/home/p00801009/vllm-ascend/vllm_ascend/worker/worker.py", line 731, in initialize_from_config
+(Worker_TP0_EP0 pid=409694) ERROR 07-11 09:36:04 [multiproc_executor.py:962]     ensure_kv_transfer_initialized(self.vllm_config, kv_cache_config)
+(Worker_TP0_EP0 pid=409694) ERROR 07-11 09:36:04 [multiproc_executor.py:962]   File "/usr/local/python3.11.10/lib/python3.11/site-packages/vllm/distributed/kv_transfer/kv_transfer_state.py", line 67, in ensure_kv_transfer_initialized
+(Worker_TP0_EP0 pid=409694) ERROR 07-11 09:36:04 [multiproc_executor.py:962]     _KV_CONNECTOR_AGENT = KVConnectorFactory.create_connector(
+(Worker_TP0_EP0 pid=409694) ERROR 07-11 09:36:04 [multiproc_executor.py:962]                           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+(Worker_TP0_EP0 pid=409694) ERROR 07-11 09:36:04 [multiproc_executor.py:962]   File "/usr/local/python3.11.10/lib/python3.11/site-packages/vllm/distributed/kv_transfer/kv_connector/factory.py", line 82, in create_connector
+(Worker_TP0_EP0 pid=409694) ERROR 07-11 09:36:04 [multiproc_executor.py:962]     return connector_cls(config, role, kv_cache_config)
+(Worker_TP0_EP0 pid=409694) ERROR 07-11 09:36:04 [multiproc_executor.py:962]            ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+(Worker_TP0_EP0 pid=409694) ERROR 07-11 09:36:04 [multiproc_executor.py:962]   File "/home/p00801009/vllm-ascend/vllm_ascend/distributed/kv_transfer/ascend_multi_connector.py", line 28, in __init__
+(Worker_TP0_EP0 pid=409694) ERROR 07-11 09:36:04 [multiproc_executor.py:962]     assert vllm_config.scheduler_config.disable_hybrid_kv_cache_manager or self._all_support_hma, (
+(Worker_TP0_EP0 pid=409694) ERROR 07-11 09:36:04 [multiproc_executor.py:962]            ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+(Worker_TP0_EP0 pid=409694) ERROR 07-11 09:36:04 [multiproc_executor.py:962] AssertionError: HMA should not be enabled unless all sub-connectors support it
+(Worker_TP0_EP0 pid=409694) ERROR 07-11 09:36:04 [multiproc_executor.py:962] Traceback (most recent call last):
+(Worker_TP0_EP0 pid=409694) ERROR 07-11 09:36:04 [multiproc_executor.py:962]   File "/usr/local/python3.11.10/lib/python3.11/site-packages/vllm/v1/executor/multiproc_executor.py", line 957, in worker_busy_loop
+(Worker_TP0_EP0 pid=409694) ERROR 07-11 09:36:04 [multiproc_executor.py:962]     output = func(*args, **kwargs)
+(Worker_TP0_EP0 pid=409694) ERROR 07-11 09:36:04 [multiproc_executor.py:962]              ^^^^^^^^^^^^^^^^^^^^^
+(Worker_TP0_EP0 pid=409694) ERROR 07-11 09:36:04 [multiproc_executor.py:962]   File "/usr/local/python3.11.10/lib/python3.11/site-packages/vllm/v1/worker/worker_base.py", line 311, in initialize_from_config
+(Worker_TP0_EP0 pid=409694) ERROR 07-11 09:36:04 [multiproc_executor.py:962]     self.worker.initialize_from_config(kv_cache_config)  # type: ignore
+(Worker_TP0_EP0 pid=409694) ERROR 07-11 09:36:04 [multiproc_executor.py:962]     ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+(Worker_TP0_EP0 pid=409694) ERROR 07-11 09:36:04 [multiproc_executor.py:962]   File "/home/p00801009/vllm-ascend/vllm_ascend/worker/worker.py", line 731, in initialize_from_config
+(Worker_TP0_EP0 pid=409694) ERROR 07-11 09:36:04 [multiproc_executor.py:962]     ensure_kv_transfer_initialized(self.vllm_config, kv_cache_config)
+(Worker_TP0_EP0 pid=409694) ERROR 07-11 09:36:04 [multiproc_executor.py:962]   File "/usr/local/python3.11.10/lib/python3.11/site-packages/vllm/distributed/kv_transfer/kv_transfer_state.py", line 67, in ensure_kv_transfer_initialized
+(Worker_TP0_EP0 pid=409694) ERROR 07-11 09:36:04 [multiproc_executor.py:962]     _KV_CONNECTOR_AGENT = KVConnectorFactory.create_connector(
+(Worker_TP0_EP0 pid=409694) ERROR 07-11 09:36:04 [multiproc_executor.py:962]                           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+(Worker_TP0_EP0 pid=409694) ERROR 07-11 09:36:04 [multiproc_executor.py:962]   File "/usr/local/python3.11.10/lib/python3.11/site-packages/vllm/distributed/kv_transfer/kv_connector/factory.py", line 82, in create_connector
+(Worker_TP0_EP0 pid=409694) ERROR 07-11 09:36:04 [multiproc_executor.py:962]     return connector_cls(config, role, kv_cache_config)
+(Worker_TP0_EP0 pid=409694) ERROR 07-11 09:36:04 [multiproc_executor.py:962]            ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+(Worker_TP0_EP0 pid=409694) ERROR 07-11 09:36:04 [multiproc_executor.py:962]   File "/home/p00801009/vllm-ascend/vllm_ascend/distributed/kv_transfer/ascend_multi_connector.py", line 28, in __init__
+(Worker_TP0_EP0 pid=409694) ERROR 07-11 09:36:04 [multiproc_executor.py:962]     assert vllm_config.scheduler_config.disable_hybrid_kv_cache_manager or self._all_support_hma, (
+(Worker_TP0_EP0 pid=409694) ERROR 07-11 09:36:04 [multiproc_executor.py:962]            ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+(Worker_TP0_EP0 pid=409694) ERROR 07-11 09:36:04 [multiproc_executor.py:962] AssertionError: HMA should not be enabled unless all sub-connectors support it
+(Worker_TP0_EP0 pid=409694) ERROR 07-11 09:36:04 [multiproc_executor.py:962]
