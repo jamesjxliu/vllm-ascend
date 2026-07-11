@@ -1,100 +1,121 @@
-Multi-thread loading shards: 100% Completed | 70/70 [00:11<00:00,  6.15it/s]
-(Worker_TP0_EP0 pid=415579)
-(Worker_TP0_EP0 pid=415579) INFO 07-11 09:45:07 [default_loader.py:384] Loading weights took 11.43 seconds
-(Worker_TP0_EP0 pid=415579) INFO 07-11 09:45:07 [llm_base_proposer.py:383] Detecting MTP model with topk_indices_buffer.Sharing target model topk_indices_buffer with the draft model.
-(Worker_TP1_EP1 pid=415616) INFO 07-11 09:45:07 [llm_base_proposer.py:383] Detecting MTP model with topk_indices_buffer.Sharing target model topk_indices_buffer with the draft model.
-[rank0]:[W711 09:45:07.546792650 NPUPluggableAllocator.cpp:307] Warning: reset_peak_status_fn_ is not define, please set by set_reset_peak_status_fn (function resetPeakStats)
-[rank1]:[W711 09:45:08.706795370 NPUPluggableAllocator.cpp:307] Warning: reset_peak_status_fn_ is not define, please set by set_reset_peak_status_fn (function resetPeakStats)
-(Worker_TP4_EP4 pid=415793) INFO 07-11 09:45:08 [llm_base_proposer.py:383] Detecting MTP model with topk_indices_buffer.Sharing target model topk_indices_buffer with the draft model.
-(Worker_TP2_EP2 pid=415675) INFO 07-11 09:45:08 [llm_base_proposer.py:383] Detecting MTP model with topk_indices_buffer.Sharing target model topk_indices_buffer with the draft model.
-(Worker_TP0_EP0 pid=415579) INFO 07-11 09:45:08 [model_runner_v1.py:3422] Loading model weights took 40.0881 GB
-(Worker_TP0_EP0 pid=415579) INFO:torch_npu.env:get env VLLM_WORKER_MULTIPROC_METHOD = spawn
-(Worker_TP1_EP1 pid=415616) INFO 07-11 09:45:08 [model_runner_v1.py:3422] Loading model weights took 40.0881 GB
-(Worker_TP1_EP1 pid=415616) INFO:torch_npu.env:get env VLLM_WORKER_MULTIPROC_METHOD = spawn
-[rank4]:[W711 09:45:09.746199020 NPUPluggableAllocator.cpp:307] Warning: reset_peak_status_fn_ is not define, please set by set_reset_peak_status_fn (function resetPeakStats)
-[rank2]:[W711 09:45:09.760867640 NPUPluggableAllocator.cpp:307] Warning: reset_peak_status_fn_ is not define, please set by set_reset_peak_status_fn (function resetPeakStats)
-(Worker_TP2_EP2 pid=415675) INFO 07-11 09:45:09 [model_runner_v1.py:3422] Loading model weights took 40.0881 GB
-(Worker_TP2_EP2 pid=415675) INFO:torch_npu.env:get env VLLM_WORKER_MULTIPROC_METHOD = spawn
-(Worker_TP4_EP4 pid=415793) INFO 07-11 09:45:09 [model_runner_v1.py:3422] Loading model weights took 40.0881 GB
-(Worker_TP4_EP4 pid=415793) INFO:torch_npu.env:get env VLLM_WORKER_MULTIPROC_METHOD = spawn
-(Worker_TP5_EP5 pid=415852) INFO 07-11 09:45:09 [llm_base_proposer.py:383] Detecting MTP model with topk_indices_buffer.Sharing target model topk_indices_buffer with the draft model.
-[rank5]:[W711 09:45:10.188106710 NPUPluggableAllocator.cpp:307] Warning: reset_peak_status_fn_ is not define, please set by set_reset_peak_status_fn (function resetPeakStats)
-(Worker_TP6_EP6 pid=415911) INFO 07-11 09:45:10 [llm_base_proposer.py:383] Detecting MTP model with topk_indices_buffer.Sharing target model topk_indices_buffer with the draft model.
-(Worker_TP5_EP5 pid=415852) INFO 07-11 09:45:11 [model_runner_v1.py:3422] Loading model weights took 40.0881 GB
-(Worker_TP5_EP5 pid=415852) INFO:torch_npu.env:get env VLLM_WORKER_MULTIPROC_METHOD = spawn
-[rank6]:[W711 09:45:11.275512570 NPUPluggableAllocator.cpp:307] Warning: reset_peak_status_fn_ is not define, please set by set_reset_peak_status_fn (function resetPeakStats)
-(Worker_TP3_EP3 pid=415734) INFO 07-11 09:45:11 [llm_base_proposer.py:383] Detecting MTP model with topk_indices_buffer.Sharing target model topk_indices_buffer with the draft model.
-(Worker_TP6_EP6 pid=415911) INFO 07-11 09:45:12 [model_runner_v1.py:3422] Loading model weights took 40.0881 GB
-(Worker_TP6_EP6 pid=415911) INFO:torch_npu.env:get env VLLM_WORKER_MULTIPROC_METHOD = spawn
-[rank3]:[W711 09:45:12.243800970 NPUPluggableAllocator.cpp:307] Warning: reset_peak_status_fn_ is not define, please set by set_reset_peak_status_fn (function resetPeakStats)
-(Worker_TP3_EP3 pid=415734) INFO 07-11 09:45:13 [model_runner_v1.py:3422] Loading model weights took 40.0881 GB
-(Worker_TP3_EP3 pid=415734) INFO:torch_npu.env:get env VLLM_WORKER_MULTIPROC_METHOD = spawn
-(Worker_TP0_EP0 pid=415579) INFO 07-11 09:45:13 [worker.py:398] Available KV cache memory: 13.80 GiB (pool=59.00 GiB, utilization=0.93, used=41.07 GiB, free=20.19 GiB)
-(EngineCore pid=415537) WARNING 07-11 09:45:13 [kv_cache_utils.py:1334] Hybrid KV cache manager is disabled for this hybrid model, This means we do not enable any optimizations for saving KV cache memory (e.g., dropping the KV cache outside the sliding window). The compute of layers like sliding window is still saved.
-(EngineCore pid=415537) ERROR 07-11 09:45:13 [core.py:1136] EngineCore failed to start.
-(EngineCore pid=415537) ERROR 07-11 09:45:13 [core.py:1136] Traceback (most recent call last):
-(EngineCore pid=415537) ERROR 07-11 09:45:13 [core.py:1136]   File "/usr/local/python3.11.10/lib/python3.11/site-packages/vllm/v1/engine/core.py", line 1110, in run_engine_core
-(EngineCore pid=415537) ERROR 07-11 09:45:13 [core.py:1136]     engine_core = EngineCoreProc(*args, engine_index=dp_rank, **kwargs)
-(EngineCore pid=415537) ERROR 07-11 09:45:13 [core.py:1136]                   ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
-(EngineCore pid=415537) ERROR 07-11 09:45:13 [core.py:1136]   File "/usr/local/python3.11.10/lib/python3.11/site-packages/vllm/tracing/otel.py", line 178, in sync_wrapper
-(EngineCore pid=415537) ERROR 07-11 09:45:13 [core.py:1136]     return func(*args, **kwargs)
-(EngineCore pid=415537) ERROR 07-11 09:45:13 [core.py:1136]            ^^^^^^^^^^^^^^^^^^^^^
-(EngineCore pid=415537) ERROR 07-11 09:45:13 [core.py:1136]   File "/usr/local/python3.11.10/lib/python3.11/site-packages/vllm/v1/engine/core.py", line 876, in __init__
-(EngineCore pid=415537) ERROR 07-11 09:45:13 [core.py:1136]     super().__init__(
-(EngineCore pid=415537) ERROR 07-11 09:45:13 [core.py:1136]   File "/usr/local/python3.11.10/lib/python3.11/site-packages/vllm/v1/engine/core.py", line 128, in __init__
-(EngineCore pid=415537) ERROR 07-11 09:45:13 [core.py:1136]     kv_cache_config = self._initialize_kv_caches(vllm_config)
-(EngineCore pid=415537) ERROR 07-11 09:45:13 [core.py:1136]                       ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
-(EngineCore pid=415537) ERROR 07-11 09:45:13 [core.py:1136]   File "/usr/local/python3.11.10/lib/python3.11/site-packages/vllm/tracing/otel.py", line 178, in sync_wrapper
-(EngineCore pid=415537) ERROR 07-11 09:45:13 [core.py:1136]     return func(*args, **kwargs)
-(EngineCore pid=415537) ERROR 07-11 09:45:13 [core.py:1136]            ^^^^^^^^^^^^^^^^^^^^^
-(EngineCore pid=415537) ERROR 07-11 09:45:13 [core.py:1136]   File "/usr/local/python3.11.10/lib/python3.11/site-packages/vllm/v1/engine/core.py", line 261, in _initialize_kv_caches
-(EngineCore pid=415537) ERROR 07-11 09:45:13 [core.py:1136]     kv_cache_configs = get_kv_cache_configs(
-(EngineCore pid=415537) ERROR 07-11 09:45:13 [core.py:1136]                        ^^^^^^^^^^^^^^^^^^^^^
-(EngineCore pid=415537) ERROR 07-11 09:45:13 [core.py:1136]   File "/usr/local/python3.11.10/lib/python3.11/site-packages/vllm/v1/core/kv_cache_utils.py", line 2013, in get_kv_cache_configs
-(EngineCore pid=415537) ERROR 07-11 09:45:13 [core.py:1136]     _check_enough_kv_cache_memory(
-(EngineCore pid=415537) ERROR 07-11 09:45:13 [core.py:1136]   File "/usr/local/python3.11.10/lib/python3.11/site-packages/vllm/v1/core/kv_cache_utils.py", line 714, in _check_enough_kv_cache_memory
-(EngineCore pid=415537) ERROR 07-11 09:45:13 [core.py:1136]     raise ValueError(
-(EngineCore pid=415537) ERROR 07-11 09:45:13 [core.py:1136] ValueError: To serve at least one request with the models's max seq len (133120), (43.18 GiB KV cache is needed, which is larger than the available KV cache memory (13.8 GiB). Based on the available memory, the estimated maximum model length is 42496. Try increasing `gpu_memory_utilization` or decreasing `max_model_len` when initializing the engine. See https://docs.vllm.ai/en/latest/configuration/conserving_memory/ for more details.
-(Worker_TP1_EP1 pid=415616) WARNING 07-11 09:45:13 [multiproc_executor.py:884] WorkerProc was terminated
-(Worker_TP5_EP5 pid=415852) WARNING 07-11 09:45:13 [multiproc_executor.py:884] WorkerProc was terminated
-(Worker_TP3_EP3 pid=415734) WARNING 07-11 09:45:13 [multiproc_executor.py:884] WorkerProc was terminated
-(Worker_TP6_EP6 pid=415911) WARNING 07-11 09:45:13 [multiproc_executor.py:884] WorkerProc was terminated
-(Worker_TP2_EP2 pid=415675) WARNING 07-11 09:45:13 [multiproc_executor.py:884] WorkerProc was terminated
-(Worker_TP4_EP4 pid=415793) WARNING 07-11 09:45:13 [multiproc_executor.py:884] WorkerProc was terminated
-(Worker_TP7_EP7 pid=415970) WARNING 07-11 09:45:13 [multiproc_executor.py:884] WorkerProc was terminated
-(Worker_TP0_EP0 pid=415579) WARNING 07-11 09:45:13 [multiproc_executor.py:884] WorkerProc was terminated
-(EngineCore pid=415537) ERROR 07-11 09:45:23 [multiproc_executor.py:283] Worker proc VllmWorker-7 died unexpectedly, shutting down executor.
-(EngineCore pid=415537) Process EngineCore:
-(EngineCore pid=415537) Traceback (most recent call last):
-(EngineCore pid=415537)   File "/usr/local/python3.11.10/lib/python3.11/multiprocessing/process.py", line 314, in _bootstrap
-(EngineCore pid=415537)     self.run()
-(EngineCore pid=415537)   File "/usr/local/python3.11.10/lib/python3.11/multiprocessing/process.py", line 108, in run
-(EngineCore pid=415537)     self._target(*self._args, **self._kwargs)
-(EngineCore pid=415537)   File "/home/p00801009/vllm-ascend/vllm_ascend/patch/platform/patch_balance_schedule.py", line 672, in run_engine_core
-(EngineCore pid=415537)     return _ORIGINAL_RUN_ENGINE_CORE(*args, dp_rank=dp_rank, local_dp_rank=local_dp_rank, **kwargs)
-(EngineCore pid=415537)            ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
-(EngineCore pid=415537)   File "/usr/local/python3.11.10/lib/python3.11/site-packages/vllm/v1/engine/core.py", line 1140, in run_engine_core
-(EngineCore pid=415537)     raise e
-(EngineCore pid=415537)   File "/usr/local/python3.11.10/lib/python3.11/site-packages/vllm/v1/engine/core.py", line 1110, in run_engine_core
-(EngineCore pid=415537)     engine_core = EngineCoreProc(*args, engine_index=dp_rank, **kwargs)
-(EngineCore pid=415537)                   ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
-(EngineCore pid=415537)   File "/usr/local/python3.11.10/lib/python3.11/site-packages/vllm/tracing/otel.py", line 178, in sync_wrapper
-(EngineCore pid=415537)     return func(*args, **kwargs)
-(EngineCore pid=415537)            ^^^^^^^^^^^^^^^^^^^^^
-(EngineCore pid=415537)   File "/usr/local/python3.11.10/lib/python3.11/site-packages/vllm/v1/engine/core.py", line 876, in __init__
-(EngineCore pid=415537)     super().__init__(
-(EngineCore pid=415537)   File "/usr/local/python3.11.10/lib/python3.11/site-packages/vllm/v1/engine/core.py", line 128, in __init__
-(EngineCore pid=415537)     kv_cache_config = self._initialize_kv_caches(vllm_config)
-(EngineCore pid=415537)                       ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
-(EngineCore pid=415537)   File "/usr/local/python3.11.10/lib/python3.11/site-packages/vllm/tracing/otel.py", line 178, in sync_wrapper
-(EngineCore pid=415537)     return func(*args, **kwargs)
-(EngineCore pid=415537)            ^^^^^^^^^^^^^^^^^^^^^
-(EngineCore pid=415537)   File "/usr/local/python3.11.10/lib/python3.11/site-packages/vllm/v1/engine/core.py", line 261, in _initialize_kv_caches
-(EngineCore pid=415537)     kv_cache_configs = get_kv_cache_configs(
-(EngineCore pid=415537)                        ^^^^^^^^^^^^^^^^^^^^^
-(EngineCore pid=415537)   File "/usr/local/python3.11.10/lib/python3.11/site-packages/vllm/v1/core/kv_cache_utils.py", line 2013, in get_kv_cache_configs
-(EngineCore pid=415537)     _check_enough_kv_cache_memory(
-(EngineCore pid=415537)   File "/usr/local/python3.11.10/lib/python3.11/site-packages/vllm/v1/core/kv_cache_utils.py", line 714, in _check_enough_kv_cache_memory
-(EngineCore pid=415537)     raise ValueError(
-(EngineCore pid=415537) ValueError: To serve at least one request with the models's max seq len (133120), (43.18 GiB KV cache is needed, which is larger than the available KV cache memory (13.8 GiB). Based on the available memory, the estimated maximum model length is 42496. Try increasing `gpu_memory_utilization` or decreasing `max_model_len` when initializing the engine. See https://docs.vllm.ai/en/latest/configuration/conserving_memory/ for more details.
-(APIServer pid=415491) Traceback (most recent call last):
+I20260711 10:00:07.250526 427052 ascend_direct_transport.cpp:136] Set transfer timeout to:33064
+I20260711 10:00:07.250633 432371 ascend_direct_transport.cpp:668] AscendDirectTransport query thread started
+(Worker_TP2_EP2 pid=427148) WARNING 07-11 10:00:07 [base.py:189] Initializing KVConnectorBase_V1. This API is experimental and subject to change in the future as we iterate the design.
+I20260711 10:00:07.251746 432380 ascend_direct_transport.cpp:668] AscendDirectTransport query thread started
+(Worker_TP0_EP0 pid=427052) WARNING 07-11 10:00:07 [base.py:189] Initializing KVConnectorBase_V1. This API is experimental and subject to change in the future as we iterate the design.
+(Worker_TP5_EP5 pid=427325) INFO 07-11 10:00:08 [mooncake_connector.py:1256] num_blocks: 299
+(Worker_TP5_EP5 pid=427325) INFO 07-11 10:00:08 [mooncake_connector.py:1262] block_shape: torch.Size([128, 1, 512])
+(Worker_TP5_EP5 pid=427325) INFO 07-11 10:00:08 [mooncake_connector.py:1273] Registering KV_Caches. use_mla: True, use_sparse: False, shape torch.Size([299, 128, 1, 512])
+I20260711 10:00:08.414230 427325 ascend_direct_transport.cpp:471] AscendDirectTransport register mem addr:0x12d1e2200000, length:39190528, location:*, mem type:0
+I20260711 10:00:08.414359 427325 ascend_direct_transport.cpp:471] AscendDirectTransport register mem addr:0x12d1e4a00000, length:39190528, location:*, mem type:0
+I20260711 10:00:08.414383 427325 ascend_direct_transport.cpp:471] AscendDirectTransport register mem addr:0x12d1ebe00000, length:39190528, location:*, mem type:0
+I20260711 10:00:08.414402 427325 ascend_direct_transport.cpp:471] AscendDirectTransport register mem addr:0x12c2dc600000, length:39190528, location:*, mem type:0
+I20260711 10:00:08.414419 427325 ascend_direct_transport.cpp:471] AscendDirectTransport register mem addr:0x12d2ea600000, length:39190528, location:*, mem type:0
+I20260711 10:00:08.414436 427325 ascend_direct_transport.cpp:471] AscendDirectTransport register mem addr:0x12d2f8e00000, length:39190528, location:*, mem type:0
+I20260711 10:00:08.414453 427325 ascend_direct_transport.cpp:471] AscendDirectTransport register mem addr:0x12d317c00000, length:39190528, location:*, mem type:0
+I20260711 10:00:08.414471 427325 ascend_direct_transport.cpp:471] AscendDirectTransport register mem addr:0x12d326400000, length:39190528, location:*, mem type:0
+I20260711 10:00:08.414489 427325 ascend_direct_transport.cpp:471] AscendDirectTransport register mem addr:0x12d1f7400000, length:39190528, location:*, mem type:0
+I20260711 10:00:08.414505 427325 ascend_direct_transport.cpp:471] AscendDirectTransport register mem addr:0x12d1fc400000, length:39190528, location:*, mem type:0
+I20260711 10:00:08.414525 427325 ascend_direct_transport.cpp:471] AscendDirectTransport register mem addr:0x12d357c00000, length:39190528, location:*, mem type:0
+I20260711 10:00:08.414541 427325 ascend_direct_transport.cpp:471] AscendDirectTransport register mem addr:0x12d366400000, length:39190528, location:*, mem type:0
+I20260711 10:00:08.414557 427325 ascend_direct_transport.cpp:471] AscendDirectTransport register mem addr:0x12d13c800000, length:39190528, location:*, mem type:0
+I20260711 10:00:08.414575 427325 ascend_direct_transport.cpp:471] AscendDirectTransport register mem addr:0x12d078200000, length:39190528, location:*, mem type:0
+I20260711 10:00:08.414595 427325 ascend_direct_transport.cpp:471] AscendDirectTransport register mem addr:0x12d397c00000, length:39190528, location:*, mem type:0
+I20260711 10:00:08.414615 427325 ascend_direct_transport.cpp:471] AscendDirectTransport register mem addr:0x12d3a6400000, length:39190528, location:*, mem type:0
+I20260711 10:00:08.414633 427325 ascend_direct_transport.cpp:471] AscendDirectTransport register mem addr:0x12d07d200000, length:39190528, location:*, mem type:0
+I20260711 10:00:08.414652 427325 ascend_direct_transport.cpp:471] AscendDirectTransport register mem addr:0x12cefca00000, length:39190528, location:*, mem type:0
+I20260711 10:00:08.414670 427325 ascend_direct_transport.cpp:471] AscendDirectTransport register mem addr:0x12d3d7c00000, length:39190528, location:*, mem type:0
+I20260711 10:00:08.414688 427325 ascend_direct_transport.cpp:471] AscendDirectTransport register mem addr:0x12d3e6400000, length:39190528, location:*, mem type:0
+I20260711 10:00:08.414706 427325 ascend_direct_transport.cpp:471] AscendDirectTransport register mem addr:0x12ce38000000, length:39190528, location:*, mem type:0
+I20260711 10:00:08.414723 427325 ascend_direct_transport.cpp:471] AscendDirectTransport register mem addr:0x12ce3d000000, length:39190528, location:*, mem type:0
+I20260711 10:00:08.414743 427325 ascend_direct_transport.cpp:471] AscendDirectTransport register mem addr:0x12d417c00000, length:39190528, location:*, mem type:0
+I20260711 10:00:08.414762 427325 ascend_direct_transport.cpp:471] AscendDirectTransport register mem addr:0x12d426400000, length:39190528, location:*, mem type:0
+I20260711 10:00:08.414779 427325 ascend_direct_transport.cpp:471] AscendDirectTransport register mem addr:0x12cd3c800000, length:39190528, location:*, mem type:0
+I20260711 10:00:08.414796 427325 ascend_direct_transport.cpp:471] AscendDirectTransport register mem addr:0x12cc78000000, length:39190528, location:*, mem type:0
+I20260711 10:00:08.414813 427325 ascend_direct_transport.cpp:471] AscendDirectTransport register mem addr:0x12d457c00000, length:39190528, location:*, mem type:0
+I20260711 10:00:08.414831 427325 ascend_direct_transport.cpp:471] AscendDirectTransport register mem addr:0x12d466400000, length:39190528, location:*, mem type:0
+I20260711 10:00:08.414855 427325 ascend_direct_transport.cpp:471] AscendDirectTransport register mem addr:0x12cc7d000000, length:39190528, location:*, mem type:0
+I20260711 10:00:08.414880 427325 ascend_direct_transport.cpp:471] AscendDirectTransport register mem addr:0x12cafca00000, length:39190528, location:*, mem type:0
+I20260711 10:00:08.414901 427325 ascend_direct_transport.cpp:471] AscendDirectTransport register mem addr:0x12d497c00000, length:39190528, location:*, mem type:0
+I20260711 10:00:08.414918 427325 ascend_direct_transport.cpp:471] AscendDirectTransport register mem addr:0x12d4a6400000, length:39190528, location:*, mem type:0
+I20260711 10:00:08.414937 427325 ascend_direct_transport.cpp:471] AscendDirectTransport register mem addr:0x12ca37e00000, length:39190528, location:*, mem type:0
+I20260711 10:00:08.414955 427325 ascend_direct_transport.cpp:471] AscendDirectTransport register mem addr:0x12ca3ce00000, length:39190528, location:*, mem type:0
+I20260711 10:00:08.414973 427325 ascend_direct_transport.cpp:471] AscendDirectTransport register mem addr:0x12d4d7c00000, length:39190528, location:*, mem type:0
+I20260711 10:00:08.414991 427325 ascend_direct_transport.cpp:471] AscendDirectTransport register mem addr:0x12d4e6400000, length:39190528, location:*, mem type:0
+I20260711 10:00:08.415009 427325 ascend_direct_transport.cpp:471] AscendDirectTransport register mem addr:0x12c97ca00000, length:39190528, location:*, mem type:0
+I20260711 10:00:08.415026 427325 ascend_direct_transport.cpp:471] AscendDirectTransport register mem addr:0x12c878000000, length:39190528, location:*, mem type:0
+I20260711 10:00:08.415045 427325 ascend_direct_transport.cpp:471] AscendDirectTransport register mem addr:0x12d517c00000, length:39190528, location:*, mem type:0
+I20260711 10:00:08.415060 427325 ascend_direct_transport.cpp:471] AscendDirectTransport register mem addr:0x12d526400000, length:39190528, location:*, mem type:0
+I20260711 10:00:08.415079 427325 ascend_direct_transport.cpp:471] AscendDirectTransport register mem addr:0x12c87d000000, length:39190528, location:*, mem type:0
+I20260711 10:00:08.415097 427325 ascend_direct_transport.cpp:471] AscendDirectTransport register mem addr:0x12c6fcc00000, length:39190528, location:*, mem type:0
+I20260711 10:00:08.415114 427325 ascend_direct_transport.cpp:471] AscendDirectTransport register mem addr:0x12d557c00000, length:39190528, location:*, mem type:0
+I20260711 10:00:08.415131 427325 ascend_direct_transport.cpp:471] AscendDirectTransport register mem addr:0x12d55cc00000, length:39190528, location:*, mem type:0
+I20260711 10:00:08.415148 427325 ascend_direct_transport.cpp:471] AscendDirectTransport register mem addr:0x12c2c0000000, length:39190528, location:*, mem type:0
+I20260711 10:00:08.415165 427325 ascend_direct_transport.cpp:471] AscendDirectTransport register mem addr:0x12d2d2a00000, length:39190528, location:*, mem type:0
+I20260711 10:00:08.415194 427325 ascend_direct_transport.cpp:471] AscendDirectTransport register mem addr:0x12d300000000, length:39190528, location:*, mem type:0
+I20260711 10:00:08.415213 427325 ascend_direct_transport.cpp:471] AscendDirectTransport register mem addr:0x12d32b400000, length:39190528, location:*, mem type:0
+I20260711 10:00:08.415232 427325 ascend_direct_transport.cpp:471] AscendDirectTransport register mem addr:0x12d340000000, length:39190528, location:*, mem type:0
+I20260711 10:00:08.415251 427325 ascend_direct_transport.cpp:471] AscendDirectTransport register mem addr:0x12d36b400000, length:39190528, location:*, mem type:0
+I20260711 10:00:08.415268 427325 ascend_direct_transport.cpp:471] AscendDirectTransport register mem addr:0x12d380000000, length:39190528, location:*, mem type:0
+I20260711 10:00:08.415284 427325 ascend_direct_transport.cpp:471] AscendDirectTransport register mem addr:0x12d3ab400000, length:39190528, location:*, mem type:0
+I20260711 10:00:08.415302 427325 ascend_direct_transport.cpp:471] AscendDirectTransport register mem addr:0x12d3c0000000, length:39190528, location:*, mem type:0
+I20260711 10:00:08.415319 427325 ascend_direct_transport.cpp:471] AscendDirectTransport register mem addr:0x12d3eb400000, length:39190528, location:*, mem type:0
+I20260711 10:00:08.415337 427325 ascend_direct_transport.cpp:471] AscendDirectTransport register mem addr:0x12d400000000, length:39190528, location:*, mem type:0
+I20260711 10:00:08.415357 427325 ascend_direct_transport.cpp:471] AscendDirectTransport register mem addr:0x12d42b400000, length:39190528, location:*, mem type:0
+I20260711 10:00:08.415380 427325 ascend_direct_transport.cpp:471] AscendDirectTransport register mem addr:0x12d440000000, length:39190528, location:*, mem type:0
+I20260711 10:00:08.415396 427325 ascend_direct_transport.cpp:471] AscendDirectTransport register mem addr:0x12d46b400000, length:39190528, location:*, mem type:0
+I20260711 10:00:08.415413 427325 ascend_direct_transport.cpp:471] AscendDirectTransport register mem addr:0x12d480000000, length:39190528, location:*, mem type:0
+I20260711 10:00:08.415433 427325 ascend_direct_transport.cpp:471] AscendDirectTransport register mem addr:0x12d4ab400000, length:39190528, location:*, mem type:0
+I20260711 10:00:08.415452 427325 ascend_direct_transport.cpp:471] AscendDirectTransport register mem addr:0x12d4c0000000, length:39190528, location:*, mem type:0
+I20260711 10:00:08.415470 427325 ascend_direct_transport.cpp:471] AscendDirectTransport register mem addr:0x12d4eb400000, length:39190528, location:*, mem type:0
+I20260711 10:00:08.415488 427325 ascend_direct_transport.cpp:471] AscendDirectTransport register mem addr:0x12d500000000, length:39190528, location:*, mem type:0
+I20260711 10:00:08.415506 427325 ascend_direct_transport.cpp:471] AscendDirectTransport register mem addr:0x12d52b400000, length:39190528, location:*, mem type:0
+I20260711 10:00:08.415524 427325 ascend_direct_transport.cpp:471] AscendDirectTransport register mem addr:0x12d540000000, length:39190528, location:*, mem type:0
+I20260711 10:00:08.415541 427325 ascend_direct_transport.cpp:471] AscendDirectTransport register mem addr:0x12c25f200000, length:39190528, location:*, mem type:0
+E20260711 10:00:08.415558 427325 transfer_engine_impl.cpp:460] Transfer Engine does not support overlapped memory region
+(Worker_TP5_EP5 pid=427325) ERROR 07-11 10:00:08 [multiproc_executor.py:962] WorkerProc hit an exception.
+(Worker_TP5_EP5 pid=427325) ERROR 07-11 10:00:08 [multiproc_executor.py:962] Traceback (most recent call last):
+(Worker_TP5_EP5 pid=427325) ERROR 07-11 10:00:08 [multiproc_executor.py:962]   File "/usr/local/python3.11.10/lib/python3.11/site-packages/vllm/v1/executor/multiproc_executor.py", line 957, in worker_busy_loop
+(Worker_TP5_EP5 pid=427325) ERROR 07-11 10:00:08 [multiproc_executor.py:962]     output = func(*args, **kwargs)
+(Worker_TP5_EP5 pid=427325) ERROR 07-11 10:00:08 [multiproc_executor.py:962]              ^^^^^^^^^^^^^^^^^^^^^
+(Worker_TP5_EP5 pid=427325) ERROR 07-11 10:00:08 [multiproc_executor.py:962]   File "/usr/local/python3.11.10/lib/python3.11/site-packages/vllm/v1/worker/worker_base.py", line 311, in initialize_from_config
+(Worker_TP5_EP5 pid=427325) ERROR 07-11 10:00:08 [multiproc_executor.py:962]     self.worker.initialize_from_config(kv_cache_config)  # type: ignore
+(Worker_TP5_EP5 pid=427325) ERROR 07-11 10:00:08 [multiproc_executor.py:962]     ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+(Worker_TP5_EP5 pid=427325) ERROR 07-11 10:00:08 [multiproc_executor.py:962]   File "/home/p00801009/vllm-ascend/vllm_ascend/worker/worker.py", line 740, in initialize_from_config
+(Worker_TP5_EP5 pid=427325) ERROR 07-11 10:00:08 [multiproc_executor.py:962]     self.model_runner.initialize_kv_cache(kv_cache_config)
+(Worker_TP5_EP5 pid=427325) ERROR 07-11 10:00:08 [multiproc_executor.py:962]   File "/home/p00801009/vllm-ascend/vllm_ascend/worker/model_runner_v1.py", line 3487, in initialize_kv_cache
+(Worker_TP5_EP5 pid=427325) ERROR 07-11 10:00:08 [multiproc_executor.py:962]     get_kv_transfer_group().register_kv_caches(kv_caches)
+(Worker_TP5_EP5 pid=427325) ERROR 07-11 10:00:08 [multiproc_executor.py:962]   File "/usr/local/python3.11.10/lib/python3.11/site-packages/vllm/distributed/kv_transfer/kv_connector/v1/multi_connector.py", line 220, in register_kv_caches
+(Worker_TP5_EP5 pid=427325) ERROR 07-11 10:00:08 [multiproc_executor.py:962]     c.register_kv_caches(kv_caches)
+(Worker_TP5_EP5 pid=427325) ERROR 07-11 10:00:08 [multiproc_executor.py:962]   File "/home/p00801009/vllm-ascend/vllm_ascend/distributed/kv_transfer/kv_p2p/mooncake_connector.py", line 908, in register_kv_caches
+(Worker_TP5_EP5 pid=427325) ERROR 07-11 10:00:08 [multiproc_executor.py:962]     self.connector_worker.register_kv_caches(kv_caches)
+(Worker_TP5_EP5 pid=427325) ERROR 07-11 10:00:08 [multiproc_executor.py:962]   File "/home/p00801009/vllm-ascend/vllm_ascend/distributed/kv_transfer/kv_p2p/mooncake_connector.py", line 1293, in register_kv_caches
+(Worker_TP5_EP5 pid=427325) ERROR 07-11 10:00:08 [multiproc_executor.py:962]     global_te.register_buffer(ptrs, lengths)
+(Worker_TP5_EP5 pid=427325) ERROR 07-11 10:00:08 [multiproc_executor.py:962]   File "/home/p00801009/vllm-ascend/vllm_ascend/distributed/kv_transfer/utils/mooncake_transfer_engine.py", line 39, in register_buffer
+(Worker_TP5_EP5 pid=427325) ERROR 07-11 10:00:08 [multiproc_executor.py:962]     raise RuntimeError("Mooncake memory registration failed.")
+(Worker_TP5_EP5 pid=427325) ERROR 07-11 10:00:08 [multiproc_executor.py:962] RuntimeError: Mooncake memory registration failed.
+(Worker_TP5_EP5 pid=427325) ERROR 07-11 10:00:08 [multiproc_executor.py:962] Traceback (most recent call last):
+(Worker_TP5_EP5 pid=427325) ERROR 07-11 10:00:08 [multiproc_executor.py:962]   File "/usr/local/python3.11.10/lib/python3.11/site-packages/vllm/v1/executor/multiproc_executor.py", line 957, in worker_busy_loop
+(Worker_TP5_EP5 pid=427325) ERROR 07-11 10:00:08 [multiproc_executor.py:962]     output = func(*args, **kwargs)
+(Worker_TP5_EP5 pid=427325) ERROR 07-11 10:00:08 [multiproc_executor.py:962]              ^^^^^^^^^^^^^^^^^^^^^
+(Worker_TP5_EP5 pid=427325) ERROR 07-11 10:00:08 [multiproc_executor.py:962]   File "/usr/local/python3.11.10/lib/python3.11/site-packages/vllm/v1/worker/worker_base.py", line 311, in initialize_from_config
+(Worker_TP5_EP5 pid=427325) ERROR 07-11 10:00:08 [multiproc_executor.py:962]     self.worker.initialize_from_config(kv_cache_config)  # type: ignore
+(Worker_TP5_EP5 pid=427325) ERROR 07-11 10:00:08 [multiproc_executor.py:962]     ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+(Worker_TP5_EP5 pid=427325) ERROR 07-11 10:00:08 [multiproc_executor.py:962]   File "/home/p00801009/vllm-ascend/vllm_ascend/worker/worker.py", line 740, in initialize_from_config
+(Worker_TP5_EP5 pid=427325) ERROR 07-11 10:00:08 [multiproc_executor.py:962]     self.model_runner.initialize_kv_cache(kv_cache_config)
+(Worker_TP5_EP5 pid=427325) ERROR 07-11 10:00:08 [multiproc_executor.py:962]   File "/home/p00801009/vllm-ascend/vllm_ascend/worker/model_runner_v1.py", line 3487, in initialize_kv_cache
+(Worker_TP5_EP5 pid=427325) ERROR 07-11 10:00:08 [multiproc_executor.py:962]     get_kv_transfer_group().register_kv_caches(kv_caches)
+(Worker_TP5_EP5 pid=427325) ERROR 07-11 10:00:08 [multiproc_executor.py:962]   File "/usr/local/python3.11.10/lib/python3.11/site-packages/vllm/distributed/kv_transfer/kv_connector/v1/multi_connector.py", line 220, in register_kv_caches
+(Worker_TP5_EP5 pid=427325) ERROR 07-11 10:00:08 [multiproc_executor.py:962]     c.register_kv_caches(kv_caches)
+(Worker_TP5_EP5 pid=427325) ERROR 07-11 10:00:08 [multiproc_executor.py:962]   File "/home/p00801009/vllm-ascend/vllm_ascend/distributed/kv_transfer/kv_p2p/mooncake_connector.py", line 908, in register_kv_caches
+(Worker_TP5_EP5 pid=427325) ERROR 07-11 10:00:08 [multiproc_executor.py:962]     self.connector_worker.register_kv_caches(kv_caches)
+(Worker_TP5_EP5 pid=427325) ERROR 07-11 10:00:08 [multiproc_executor.py:962]   File "/home/p00801009/vllm-ascend/vllm_ascend/distributed/kv_transfer/kv_p2p/mooncake_connector.py", line 1293, in register_kv_caches
+(Worker_TP5_EP5 pid=427325) ERROR 07-11 10:00:08 [multiproc_executor.py:962]     global_te.register_buffer(ptrs, lengths)
+(Worker_TP5_EP5 pid=427325) ERROR 07-11 10:00:08 [multiproc_executor.py:962]   File "/home/p00801009/vllm-ascend/vllm_ascend/distributed/kv_transfer/utils/mooncake_transfer_engine.py", line 39, in register_buffer
+(Worker_TP5_EP5 pid=427325) ERROR 07-11 10:00:08 [multiproc_executor.py:962]     raise RuntimeError("Mooncake memory registration failed.")
+(Worker_TP5_EP5 pid=427325) ERROR 07-11 10:00:08 [multiproc_executor.py:962] RuntimeError: Mooncake memory registration failed.
+(Worker_TP5_EP5 pid=427325) ERROR 07-11 10:00:08 [multiproc_executor.py:962]
+(Worker_TP4_EP4 pid=427266) INFO 07-11 10:00:08 [mooncake_connector.py:1256] num_blocks: 299
+(Worker_TP4_EP4 pid=427266) INFO 07-11 10:00:08 [mooncake_connector.py:1262] block_shape: torch.Size([128, 1, 512])
+(Worker_TP4_EP4 pid=427266) INFO 07-11 10:00:08 [mooncake_connector.py:1273] Registering KV_Caches. use_mla: True, use_sparse: False, shape torch.Size([299, 128, 1, 512])
+I20260711 10:00:08.420918 427266 ascend_direct_transport.cpp:471] AscendDirectTransport register mem addr:0x12d1e2200000, length:39190528, location:*, mem type:0
