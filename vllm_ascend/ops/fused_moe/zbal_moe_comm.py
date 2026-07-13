@@ -377,3 +377,6 @@ class ZBALCommImpl(MoECommMethod):
         # sizes across TP ranks. PrepareAndFinalizeWithZBAL pads num_tokens
         # to a multiple of tp_size to guarantee uniform tensor_split slices.
         return PrepareAndFinalizeWithZBAL(self.moe_config)
+
+    def pad_and_split_input_ids(self, input_indx):
+        return self.prepare_finalize.pad_and_split_input_ids(input_indx)
