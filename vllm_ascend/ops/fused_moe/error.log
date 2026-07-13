@@ -1,17 +1,43 @@
-     ^^^^^^^^^^^^^^^^^^
-(Worker_TP0_EP0 pid=622193) ERROR 07-11 17:41:06 [multiproc_executor.py:962]   File "/home/p00801009/vllm-ascend/vllm_ascend/ops/fused_moe/fused_moe.py", line 661, in forward_impl
-(Worker_TP0_EP0 pid=622193) ERROR 07-11 17:41:06 [multiproc_executor.py:962]     fused_experts_results: FusedExpertsResult = self.quant_method.apply(
-(Worker_TP0_EP0 pid=622193) ERROR 07-11 17:41:06 [multiproc_executor.py:962]                                                 ^^^^^^^^^^^^^^^^^^^^^^^^
-(Worker_TP0_EP0 pid=622193) ERROR 07-11 17:41:06 [multiproc_executor.py:962]   File "/home/p00801009/vllm-ascend/vllm_ascend/quantization/method_adapters.py", line 270, in apply
-(Worker_TP0_EP0 pid=622193) ERROR 07-11 17:41:06 [multiproc_executor.py:962]     return self.quant_method.apply(
-(Worker_TP0_EP0 pid=622193) ERROR 07-11 17:41:06 [multiproc_executor.py:962]            ^^^^^^^^^^^^^^^^^^^^^^^^
-(Worker_TP0_EP0 pid=622193) ERROR 07-11 17:41:06 [multiproc_executor.py:962]   File "/home/p00801009/vllm-ascend/vllm_ascend/quantization/methods/w8a8_dynamic.py", line 268, in apply
-(Worker_TP0_EP0 pid=622193) ERROR 07-11 17:41:06 [multiproc_executor.py:962]     topk_weights, topk_ids = select_experts(
-(Worker_TP0_EP0 pid=622193) ERROR 07-11 17:41:06 [multiproc_executor.py:962]                              ^^^^^^^^^^^^^^^
-(Worker_TP0_EP0 pid=622193) ERROR 07-11 17:41:06 [multiproc_executor.py:962]   File "/home/p00801009/vllm-ascend/vllm_ascend/ops/fused_moe/experts_selector.py", line 86, in select_experts
-(Worker_TP0_EP0 pid=622193) ERROR 07-11 17:41:06 [multiproc_executor.py:962]     topk_weights, topk_ids = _select_experts_with_fusion_ops(
-(Worker_TP0_EP0 pid=622193) ERROR 07-11 17:41:06 [multiproc_executor.py:962]                              ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
-(Worker_TP0_EP0 pid=622193) ERROR 07-11 17:41:06 [multiproc_executor.py:962]   File "/home/p00801009/vllm-ascend/vllm_ascend/ops/fused_moe/experts_selector.py", line 263, in _select_experts_with_fusion_ops
-(Worker_TP0_EP0 pid=622193) ERROR 07-11 17:41:06 [multiproc_executor.py:962]     input_ids = forward_context.moe_comm_method.pad_and_split_input_ids(input_ids)
-(Worker_TP0_EP0 pid=622193) ERROR 07-11 17:41:06 [multiproc_executor.py:962]                 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
-(Worker_TP0_EP0 pid=622193) ERROR 07-11 17:41:06 [multiproc_executor.py:962] AttributeError: 'ZBALCommImpl' object has no attribute 'pad_and_split_inpu
+Thread 681884 (idle): "MainThread"
+    dispatch (zbal/zbal_buffer.py:322)
+    dispatch (vllm_ascend/ops/fused_moe/zbal_moe_adapter.py:169)
+    token_dispatch (vllm_ascend/ops/fused_moe/zbal_moe_comm.py:177)
+    fused_experts (vllm_ascend/ops/fused_moe/moe_comm_method.py:153)
+    apply (vllm_ascend/quantization/methods/w8a8_dynamic.py:324)
+    apply (vllm_ascend/quantization/method_adapters.py:270)
+    forward_impl (vllm_ascend/ops/fused_moe/fused_moe.py:661)
+    shared_forward_impl (vllm_ascend/ops/fused_moe/fused_moe.py:827)
+    forward_impl (vllm_ascend/ops/fused_moe/fused_moe.py:314)
+    _forward_impl (vllm_ascend/ops/fused_moe/fused_moe.py:326)
+    _moe_forward_shared (vllm/model_executor/layers/fused_moe/runner/moe_runner.py:134)
+    __call__ (torch/_ops.py:1209)
+    forward (vllm/model_executor/layers/fused_moe/runner/moe_runner.py:610)
+    forward (vllm_ascend/ops/fused_moe/fused_moe.py:579)
+    _call_impl (torch/nn/modules/module.py:1787)
+    _wrapped_call_impl (torch/nn/modules/module.py:1776)
+    forward (vllm_ascend/models/deepseek_v4.py:348)
+    _call_impl (torch/nn/modules/module.py:1787)
+    _wrapped_call_impl (torch/nn/modules/module.py:1776)
+    forward (vllm_ascend/models/deepseek_v4.py:857)
+    _call_impl (torch/nn/modules/module.py:1787)
+    _wrapped_call_impl (torch/nn/modules/module.py:1776)
+    forward (vllm_ascend/models/deepseek_v4.py:978)
+    __call__ (vllm/compilation/decorators.py:467)
+    forward (vllm_ascend/models/deepseek_v4.py:1109)
+    _call_impl (torch/nn/modules/module.py:1787)
+    _wrapped_call_impl (torch/nn/modules/module.py:1776)
+    _model_forward (vllm_ascend/worker/model_runner_v1.py:2546)
+    execute_model (vllm_ascend/worker/model_runner_v1.py:2031)
+    decorate_context (torch/utils/_contextlib.py:124)
+    execute_model (vllm_ascend/worker/worker.py:490)
+    execute_model (vllm/v1/worker/worker_base.py:337)
+    worker_busy_loop (vllm/v1/executor/multiproc_executor.py:957)
+    worker_main (vllm/v1/executor/multiproc_executor.py:861)
+    run (multiprocessing/process.py:108)
+    _bootstrap (multiprocessing/process.py:314)
+    _main (multiprocessing/spawn.py:135)
+    spawn_main (multiprocessing/spawn.py:122)
+    <module> (<string>:1)
+Thread 681979 (idle)
+Thread 681980 (idle)
+Thread 681981 (idle)
