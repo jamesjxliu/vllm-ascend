@@ -1,138 +1,57 @@
-(APIServer pid=774003) INFO 07-13 15:52:28 [launcher.py:46] Route: /v1/completions/render, Methods: POST
-(APIServer pid=774003) INFO:     Started server process [774003]
-(APIServer pid=774003) INFO:     Waiting for application startup.
-(APIServer pid=774003) INFO:     Application startup complete.
-[rank4]:[W713 15:53:25.160415580 ToKernelNpu.cpp:41] Warning: Device do not support double dtype now, dtype cast replace with float. (function operator())
-[rank3]:[W713 15:53:25.160586120 ToKernelNpu.cpp:41] Warning: Device do not support double dtype now, dtype cast replace with float. (function operator())
-[rank2]:[W713 15:53:25.160586320 ToKernelNpu.cpp:41] Warning: Device do not support double dtype now, dtype cast replace with float. (function operator())
-[rank7]:[W713 15:53:25.160634380 ToKernelNpu.cpp:41] Warning: Device do not support double dtype now, dtype cast replace with float. (function operator())
-[rank6]:[W713 15:53:25.160634450 ToKernelNpu.cpp:41] Warning: Device do not support double dtype now, dtype cast replace with float. (function operator())
-[rank5]:[W713 15:53:25.160642860 ToKernelNpu.cpp:41] Warning: Device do not support double dtype now, dtype cast replace with float. (function operator())
-[rank0]:[W713 15:53:25.160686010 ToKernelNpu.cpp:41] Warning: Device do not support double dtype now, dtype cast replace with float. (function operator())
-[rank1]:[W713 15:53:25.160723240 ToKernelNpu.cpp:41] Warning: Device do not support double dtype now, dtype cast replace with float. (function operator())
-(Worker_TP2_EP2 pid=774185) INFO:vllm_ascend.ops.fused_moe.zbal_moe_adapter:[ZBALMoEAdapter] Initializing adapter with rank=2, group_size=8, num_experts=256, hidden_size=4096, low_latency_mode=False
-(Worker_TP0_EP0 pid=774091) INFO:vllm_ascend.ops.fused_moe.zbal_moe_adapter:[ZBALMoEAdapter] Initializing adapter with rank=0, group_size=8, num_experts=256, hidden_size=4096, low_latency_mode=False
-(Worker_TP1_EP1 pid=774128) INFO:vllm_ascend.ops.fused_moe.zbal_moe_adapter:[ZBALMoEAdapter] Initializing adapter with rank=1, group_size=8, num_experts=256, hidden_size=4096, low_latency_mode=False
-(Worker_TP3_EP3 pid=774244) INFO:vllm_ascend.ops.fused_moe.zbal_moe_adapter:[ZBALMoEAdapter] Initializing adapter with rank=3, group_size=8, num_experts=256, hidden_size=4096, low_latency_mode=False
-(Worker_TP6_EP6 pid=774421) INFO:vllm_ascend.ops.fused_moe.zbal_moe_adapter:[ZBALMoEAdapter] Initializing adapter with rank=6, group_size=8, num_experts=256, hidden_size=4096, low_latency_mode=False
-(Worker_TP7_EP7 pid=774480) INFO:vllm_ascend.ops.fused_moe.zbal_moe_adapter:[ZBALMoEAdapter] Initializing adapter with rank=7, group_size=8, num_experts=256, hidden_size=4096, low_latency_mode=False
-(Worker_TP4_EP4 pid=774303) INFO:vllm_ascend.ops.fused_moe.zbal_moe_adapter:[ZBALMoEAdapter] Initializing adapter with rank=4, group_size=8, num_experts=256, hidden_size=4096, low_latency_mode=False
-(Worker_TP5_EP5 pid=774362) INFO:vllm_ascend.ops.fused_moe.zbal_moe_adapter:[ZBALMoEAdapter] Initializing adapter with rank=5, group_size=8, num_experts=256, hidden_size=4096, low_latency_mode=False
-(Worker_TP2_EP2 pid=774185) rank_id=2, o_proj_input=tensor([[[ 0.2773,  0.4395,  0.1475,  ..., -0.2295,  0.3613,  0.1973]],
-(Worker_TP2_EP2 pid=774185)
-(Worker_TP2_EP2 pid=774185)         [[ 0.3496,  0.5195,  0.1836,  ..., -0.3066,  0.8438,  0.2500]],
-(Worker_TP2_EP2 pid=774185)
-(Worker_TP2_EP2 pid=774185)         [[ 0.1406, -0.2559,  0.0457,  ..., -0.2930,  0.9180,  0.2178]],
-(Worker_TP2_EP2 pid=774185)
-(Worker_TP2_EP2 pid=774185)         ...,
-(Worker_TP2_EP2 pid=774185)
-(Worker_TP2_EP2 pid=774185)         [[ 0.0000,  0.0000,  0.0000,  ...,  0.0000,  0.0000,  0.0000]],
-(Worker_TP2_EP2 pid=774185)
-(Worker_TP2_EP2 pid=774185)         [[ 0.0000,  0.0000,  0.0000,  ...,  0.0000,  0.0000,  0.0000]],
-(Worker_TP2_EP2 pid=774185)
-(Worker_TP2_EP2 pid=774185)         [[ 0.0000,  0.0000,  0.0000,  ...,  0.0000,  0.0000,  0.0000]]],
-(Worker_TP2_EP2 pid=774185)        device='npu:2', dtype=torch.bfloat16), o_proj_input.shape=torch.Size([16, 1, 4096]), o_proj_input.data_ptr()=22009558451200
-(Worker_TP2_EP2 pid=774185) get_hccl_comm_name failed 'torch_npu._C._distributed_c10d.ProcessGroupHCCL' object has no attribute 'get_zbal_comm_name'
-(Worker_TP2_EP2 pid=774185) ERROR 07-13 15:53:25 [multiproc_executor.py:962] WorkerProc hit an exception.
-(Worker_TP2_EP2 pid=774185) ERROR 07-13 15:53:25 [multiproc_executor.py:962] Traceback (most recent call last):
-(Worker_TP2_EP2 pid=774185) ERROR 07-13 15:53:25 [multiproc_executor.py:962]   File "/usr/local/python3.11.10/lib/python3.11/site-packages/vllm/v1/executor/multiproc_executor.py", line 957, in worker_busy_loop
-(Worker_TP2_EP2 pid=774185) ERROR 07-13 15:53:25 [multiproc_executor.py:962]     output = func(*args, **kwargs)
-(Worker_TP2_EP2 pid=774185) ERROR 07-13 15:53:25 [multiproc_executor.py:962]              ^^^^^^^^^^^^^^^^^^^^^
-(Worker_TP2_EP2 pid=774185) ERROR 07-13 15:53:25 [multiproc_executor.py:962]   File "/usr/local/python3.11.10/lib/python3.11/site-packages/vllm/v1/worker/worker_base.py", line 337, in execute_model
-(Worker_TP2_EP2 pid=774185) ERROR 07-13 15:53:25 [multiproc_executor.py:962]     return self.worker.execute_model(scheduler_output)
-(Worker_TP2_EP2 pid=774185) ERROR 07-13 15:53:25 [multiproc_executor.py:962]            ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
-(Worker_TP2_EP2 pid=774185) ERROR 07-13 15:53:25 [multiproc_executor.py:962]   File "/home/p00801009/vllm-ascend/vllm_ascend/worker/worker.py", line 490, in execute_model
-(Worker_TP2_EP2 pid=774185) ERROR 07-13 15:53:25 [multiproc_executor.py:962]     output = self.model_runner.execute_model(scheduler_output, intermediate_tensors)
-(Worker_TP2_EP2 pid=774185) ERROR 07-13 15:53:25 [multiproc_executor.py:962]              ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
-(Worker_TP2_EP2 pid=774185) ERROR 07-13 15:53:25 [multiproc_executor.py:962]   File "/usr/local/python3.11.10/lib/python3.11/site-packages/torch/utils/_contextlib.py", line 124, in decorate_context
-(Worker_TP2_EP2 pid=774185) ERROR 07-13 15:53:25 [multiproc_executor.py:962]     return func(*args, **kwargs)
-(Worker_TP2_EP2 pid=774185) ERROR 07-13 15:53:25 [multiproc_executor.py:962]            ^^^^^^^^^^^^^^^^^^^^^
-(Worker_TP2_EP2 pid=774185) ERROR 07-13 15:53:25 [multiproc_executor.py:962]   File "/home/p00801009/vllm-ascend/vllm_ascend/worker/model_runner_v1.py", line 2031, in execute_model
-(Worker_TP2_EP2 pid=774185) ERROR 07-13 15:53:25 [multiproc_executor.py:962]     hidden_states = self._model_forward(
-(Worker_TP2_EP2 pid=774185) ERROR 07-13 15:53:25 [multiproc_executor.py:962]                     ^^^^^^^^^^^^^^^^^^^^
-(Worker_TP2_EP2 pid=774185) ERROR 07-13 15:53:25 [multiproc_executor.py:962]   File "/home/p00801009/vllm-ascend/vllm_ascend/worker/model_runner_v1.py", line 2546, in _model_forward
-(Worker_TP2_EP2 pid=774185) ERROR 07-13 15:53:25 [multiproc_executor.py:962]     hidden_states = run_model()
-(Worker_TP2_EP2 pid=774185) ERROR 07-13 15:53:25 [multiproc_executor.py:962]                     ^^^^^^^^^^^
-(Worker_TP2_EP2 pid=774185) ERROR 07-13 15:53:25 [multiproc_executor.py:962]   File "/usr/local/python3.11.10/lib/python3.11/site-packages/torch/nn/modules/module.py", line 1776, in _wrapped_call_impl
-(Worker_TP2_EP2 pid=774185) ERROR 07-13 15:53:25 [multiproc_executor.py:962]     return self._call_impl(*args, **kwargs)
-(Worker_TP2_EP2 pid=774185) ERROR 07-13 15:53:25 [multiproc_executor.py:962]            ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
-(Worker_TP2_EP2 pid=774185) ERROR 07-13 15:53:25 [multiproc_executor.py:962]   File "/usr/local/python3.11.10/lib/python3.11/site-packages/torch/nn/modules/module.py", line 1787, in _call_impl
-(Worker_TP2_EP2 pid=774185) ERROR 07-13 15:53:25 [multiproc_executor.py:962]     return forward_call(*args, **kwargs)
-(Worker_TP2_EP2 pid=774185) ERROR 07-13 15:53:25 [multiproc_executor.py:962]            ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
-(Worker_TP2_EP2 pid=774185) ERROR 07-13 15:53:25 [multiproc_executor.py:962]   File "/home/p00801009/vllm-ascend/vllm_ascend/models/deepseek_v4.py", line 1109, in forward
-(Worker_TP2_EP2 pid=774185) ERROR 07-13 15:53:25 [multiproc_executor.py:962]     hidden_states = self.model(input_ids, positions, intermediate_tensors, inputs_embeds)
-(Worker_TP2_EP2 pid=774185) ERROR 07-13 15:53:25 [multiproc_executor.py:962]                     ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
-(Worker_TP2_EP2 pid=774185) ERROR 07-13 15:53:25 [multiproc_executor.py:962]   File "/usr/local/python3.11.10/lib/python3.11/site-packages/vllm/compilation/decorators.py", line 467, in __call__
-(Worker_TP2_EP2 pid=774185) ERROR 07-13 15:53:25 [multiproc_executor.py:962]     return self.forward(*args, **kwargs)
-(Worker_TP2_EP2 pid=774185) ERROR 07-13 15:53:25 [multiproc_executor.py:962]            ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
-(Worker_TP2_EP2 pid=774185) ERROR 07-13 15:53:25 [multiproc_executor.py:962]   File "/home/p00801009/vllm-ascend/vllm_ascend/models/deepseek_v4.py", line 978, in forward
-(Worker_TP2_EP2 pid=774185) ERROR 07-13 15:53:25 [multiproc_executor.py:962]     hidden_states, residual = layer(positions, hidden_states, residual, llama_4_scaling)
-(Worker_TP2_EP2 pid=774185) ERROR 07-13 15:53:25 [multiproc_executor.py:962]                               ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
-(Worker_TP2_EP2 pid=774185) ERROR 07-13 15:53:25 [multiproc_executor.py:962]   File "/usr/local/python3.11.10/lib/python3.11/site-packages/torch/nn/modules/module.py", line 1776, in _wrapped_call_impl
-(Worker_TP2_EP2 pid=774185) ERROR 07-13 15:53:25 [multiproc_executor.py:962]     return self._call_impl(*args, **kwargs)
-(Worker_TP2_EP2 pid=774185) ERROR 07-13 15:53:25 [multiproc_executor.py:962]            ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
-(Worker_TP2_EP2 pid=774185) ERROR 07-13 15:53:25 [multiproc_executor.py:962]   File "/usr/local/python3.11.10/lib/python3.11/site-packages/torch/nn/modules/module.py", line 1787, in _call_impl
-(Worker_TP2_EP2 pid=774185) ERROR 07-13 15:53:25 [multiproc_executor.py:962]     return forward_call(*args, **kwargs)
-(Worker_TP2_EP2 pid=774185) ERROR 07-13 15:53:25 [multiproc_executor.py:962]            ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
-(Worker_TP2_EP2 pid=774185) ERROR 07-13 15:53:25 [multiproc_executor.py:962]   File "/home/p00801009/vllm-ascend/vllm_ascend/models/deepseek_v4.py", line 857, in forward
-(Worker_TP2_EP2 pid=774185) ERROR 07-13 15:53:25 [multiproc_executor.py:962]     hidden_states = self.mlp(hidden_states)
-(Worker_TP2_EP2 pid=774185) ERROR 07-13 15:53:25 [multiproc_executor.py:962]                     ^^^^^^^^^^^^^^^^^^^^^^^
-(Worker_TP2_EP2 pid=774185) ERROR 07-13 15:53:25 [multiproc_executor.py:962]   File "/usr/local/python3.11.10/lib/python3.11/site-packages/torch/nn/modules/module.py", line 1776, in _wrapped_call_impl
-(Worker_TP2_EP2 pid=774185) ERROR 07-13 15:53:25 [multiproc_executor.py:962]     return self._call_impl(*args, **kwargs)
-(Worker_TP2_EP2 pid=774185) ERROR 07-13 15:53:25 [multiproc_executor.py:962]            ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
-(Worker_TP2_EP2 pid=774185) ERROR 07-13 15:53:25 [multiproc_executor.py:962]   File "/usr/local/python3.11.10/lib/python3.11/site-packages/torch/nn/modules/module.py", line 1787, in _call_impl
-(Worker_TP2_EP2 pid=774185) ERROR 07-13 15:53:25 [multiproc_executor.py:962]     return forward_call(*args, **kwargs)
-(Worker_TP2_EP2 pid=774185) ERROR 07-13 15:53:25 [multiproc_executor.py:962]            ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
-(Worker_TP2_EP2 pid=774185) ERROR 07-13 15:53:25 [multiproc_executor.py:962]   File "/home/p00801009/vllm-ascend/vllm_ascend/models/deepseek_v4.py", line 348, in forward
-(Worker_TP2_EP2 pid=774185) ERROR 07-13 15:53:25 [multiproc_executor.py:962]     fused_moe_out = self.experts(hidden_states=hidden_states, router_logits=hidden_states)
-(Worker_TP2_EP2 pid=774185) ERROR 07-13 15:53:25 [multiproc_executor.py:962]                     ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
-(Worker_TP2_EP2 pid=774185) ERROR 07-13 15:53:25 [multiproc_executor.py:962]   File "/usr/local/python3.11.10/lib/python3.11/site-packages/torch/nn/modules/module.py", line 1776, in _wrapped_call_impl
-(Worker_TP2_EP2 pid=774185) ERROR 07-13 15:53:25 [multiproc_executor.py:962]     return self._call_impl(*args, **kwargs)
-(Worker_TP2_EP2 pid=774185) ERROR 07-13 15:53:25 [multiproc_executor.py:962]            ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
-(Worker_TP2_EP2 pid=774185) ERROR 07-13 15:53:25 [multiproc_executor.py:962]   File "/usr/local/python3.11.10/lib/python3.11/site-packages/torch/nn/modules/module.py", line 1787, in _call_impl
-(Worker_TP2_EP2 pid=774185) ERROR 07-13 15:53:25 [multiproc_executor.py:962]     return forward_call(*args, **kwargs)
-(Worker_TP2_EP2 pid=774185) ERROR 07-13 15:53:25 [multiproc_executor.py:962]            ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
-(Worker_TP2_EP2 pid=774185) ERROR 07-13 15:53:25 [multiproc_executor.py:962]   File "/home/p00801009/vllm-ascend/vllm_ascend/ops/fused_moe/fused_moe.py", line 579, in forward
-(Worker_TP2_EP2 pid=774185) ERROR 07-13 15:53:25 [multiproc_executor.py:962]     return self.runner.forward(
-(Worker_TP2_EP2 pid=774185) ERROR 07-13 15:53:25 [multiproc_executor.py:962]            ^^^^^^^^^^^^^^^^^^^^
-(Worker_TP2_EP2 pid=774185) ERROR 07-13 15:53:25 [multiproc_executor.py:962]   File "/usr/local/python3.11.10/lib/python3.11/site-packages/vllm/model_executor/layers/fused_moe/runner/moe_runner.py", line 610, in forward
-(Worker_TP2_EP2 pid=774185) ERROR 07-13 15:53:25 [multiproc_executor.py:962]     result = self._forward_entry(
-(Worker_TP2_EP2 pid=774185) ERROR 07-13 15:53:25 [multiproc_executor.py:962]              ^^^^^^^^^^^^^^^^^^^^
-(Worker_TP2_EP2 pid=774185) ERROR 07-13 15:53:25 [multiproc_executor.py:962]   File "/usr/local/python3.11.10/lib/python3.11/site-packages/torch/_ops.py", line 1209, in __call__
-(Worker_TP2_EP2 pid=774185) ERROR 07-13 15:53:25 [multiproc_executor.py:962]     return self._op(*args, **kwargs)
-(Worker_TP2_EP2 pid=774185) ERROR 07-13 15:53:25 [multiproc_executor.py:962]            ^^^^^^^^^^^^^^^^^^^^^^^^^
-(Worker_TP2_EP2 pid=774185) ERROR 07-13 15:53:25 [multiproc_executor.py:962]   File "/usr/local/python3.11.10/lib/python3.11/site-packages/vllm/model_executor/layers/fused_moe/runner/moe_runner.py", line 134, in _moe_forward_shared
-(Worker_TP2_EP2 pid=774185) ERROR 07-13 15:53:25 [multiproc_executor.py:962]     return layer.runner._forward_impl(
-(Worker_TP2_EP2 pid=774185) ERROR 07-13 15:53:25 [multiproc_executor.py:962]            ^^^^^^^^^^^^^^^^^^^^^^^^^^^
-(Worker_TP2_EP2 pid=774185) ERROR 07-13 15:53:25 [multiproc_executor.py:962]   File "/home/p00801009/vllm-ascend/vllm_ascend/ops/fused_moe/fused_moe.py", line 326, in _forward_impl
-(Worker_TP2_EP2 pid=774185) ERROR 07-13 15:53:25 [multiproc_executor.py:962]     return self.forward_impl(
-(Worker_TP2_EP2 pid=774185) ERROR 07-13 15:53:25 [multiproc_executor.py:962]            ^^^^^^^^^^^^^^^^^^
-(Worker_TP2_EP2 pid=774185) ERROR 07-13 15:53:25 [multiproc_executor.py:962]   File "/home/p00801009/vllm-ascend/vllm_ascend/ops/fused_moe/fused_moe.py", line 314, in forward_impl
-(Worker_TP2_EP2 pid=774185) ERROR 07-13 15:53:25 [multiproc_executor.py:962]     result = layer.shared_forward_impl(hidden_states, router_logits)
-(Worker_TP2_EP2 pid=774185) ERROR 07-13 15:53:25 [multiproc_executor.py:962]              ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
-(Worker_TP2_EP2 pid=774185) ERROR 07-13 15:53:25 [multiproc_executor.py:962]   File "/home/p00801009/vllm-ascend/vllm_ascend/ops/fused_moe/fused_moe.py", line 827, in shared_forward_impl
-(Worker_TP2_EP2 pid=774185) ERROR 07-13 15:53:25 [multiproc_executor.py:962]     fused_moe_results = self.forward_impl(
-(Worker_TP2_EP2 pid=774185) ERROR 07-13 15:53:25 [multiproc_executor.py:962]                         ^^^^^^^^^^^^^^^^^^
-(Worker_TP2_EP2 pid=774185) ERROR 07-13 15:53:25 [multiproc_executor.py:962]   File "/home/p00801009/vllm-ascend/vllm_ascend/ops/fused_moe/fused_moe.py", line 661, in forward_impl
-(Worker_TP2_EP2 pid=774185) ERROR 07-13 15:53:25 [multiproc_executor.py:962]     fused_experts_results: FusedExpertsResult = self.quant_method.apply(
-(Worker_TP2_EP2 pid=774185) ERROR 07-13 15:53:25 [multiproc_executor.py:962]                                                 ^^^^^^^^^^^^^^^^^^^^^^^^
-(Worker_TP2_EP2 pid=774185) ERROR 07-13 15:53:25 [multiproc_executor.py:962]   File "/home/p00801009/vllm-ascend/vllm_ascend/quantization/method_adapters.py", line 270, in apply
-(Worker_TP2_EP2 pid=774185) ERROR 07-13 15:53:25 [multiproc_executor.py:962]     return self.quant_method.apply(
-(Worker_TP2_EP2 pid=774185) ERROR 07-13 15:53:25 [multiproc_executor.py:962]            ^^^^^^^^^^^^^^^^^^^^^^^^
-(Worker_TP2_EP2 pid=774185) ERROR 07-13 15:53:25 [multiproc_executor.py:962]   File "/home/p00801009/vllm-ascend/vllm_ascend/quantization/methods/w8a8_dynamic.py", line 324, in apply
-(Worker_TP2_EP2 pid=774185) ERROR 07-13 15:53:25 [multiproc_executor.py:962]     final_hidden_states = moe_comm_method.fused_experts(
-(Worker_TP2_EP2 pid=774185) ERROR 07-13 15:53:25 [multiproc_executor.py:962]                           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
-(Worker_TP2_EP2 pid=774185) ERROR 07-13 15:53:25 [multiproc_executor.py:962]   File "/home/p00801009/vllm-ascend/vllm_ascend/ops/fused_moe/moe_comm_method.py", line 153, in fused_experts
-(Worker_TP2_EP2 pid=774185) ERROR 07-13 15:53:25 [multiproc_executor.py:962]     token_dispatch_output = self.token_dispatcher.token_dispatch(token_dispatch_input=token_dispatch_input)
-(Worker_TP2_EP2 pid=774185) ERROR 07-13 15:53:25 [multiproc_executor.py:962]                             ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
-(Worker_TP2_EP2 pid=774185) ERROR 07-13 15:53:25 [multiproc_executor.py:962]   File "/home/p00801009/vllm-ascend/vllm_ascend/ops/fused_moe/zbal_moe_comm.py", line 106, in token_dispatch
-(Worker_TP2_EP2 pid=774185) ERROR 07-13 15:53:25 [multiproc_executor.py:962]     self._adapter = ZBALMoEAdapter(
-(Worker_TP2_EP2 pid=774185) ERROR 07-13 15:53:25 [multiproc_executor.py:962]                     ^^^^^^^^^^^^^^^
-(Worker_TP2_EP2 pid=774185) ERROR 07-13 15:53:25 [multiproc_executor.py:962]   File "/home/p00801009/vllm-ascend/vllm_ascend/ops/fused_moe/zbal_moe_adapter.py", line 132, in __init__
-(Worker_TP2_EP2 pid=774185) ERROR 07-13 15:53:25 [multiproc_executor.py:962]     self.buffer = Buffer(
-(Worker_TP2_EP2 pid=774185) ERROR 07-13 15:53:25 [multiproc_executor.py:962]                   ^^^^^^^
-(Worker_TP2_EP2 pid=774185) ERROR 07-13 15:53:25 [multiproc_executor.py:962]   File "/usr/local/python3.11.10/lib/python3.11/site-packages/zbal/zbal_buffer.py", line 75, in __init__
-(Worker_TP2_EP2 pid=774185) ERROR 07-13 15:53:25 [multiproc_executor.py:962]     self.runtime = deepep_adaptor.Buffer(
-(Worker_TP2_EP2 pid=774185) ERROR 07-13 15:53:25 [multiproc_executor.py:962]                    ^^^^^^^^^^^^^^^^^^^^^^
-(Worker_TP2_EP2 pid=774185) ERROR 07-13 15:53:25 [multiproc_executor.py:962] RuntimeError: [ZBAL_/home/l00519189/memory_fabric_1/app/zbal/src/csrc/adaptor/deepep/zbal_deepep.cpp:156] Check failed: !moe_group_name.empty() and moe_group_name.size() < COMM_NAME_LEN. moe_group_name check failed:
-(Worker_TP2_EP2 pid=774185) ERROR 07-13 15:53:25 [multiproc_executor.py:962]
+APIServer pid=794088) INFO:     Waiting for application startup.
+(APIServer pid=794088) INFO:     Application startup complete.
+[rank4]:[W713 16:29:59.989192410 ToKernelNpu.cpp:41] Warning: Device do not support double dtype now, dtype cast replace with float. (function operator())
+[rank5]:[W713 16:29:59.990588090 ToKernelNpu.cpp:41] Warning: Device do not support double dtype now, dtype cast replace with float. (function operator())
+[rank2]:[W713 16:29:59.995360030 ToKernelNpu.cpp:41] Warning: Device do not support double dtype now, dtype cast replace with float. (function operator())
+[rank3]:[W713 16:29:59.997686640 ToKernelNpu.cpp:41] Warning: Device do not support double dtype now, dtype cast replace with float. (function operator())
+[rank6]:[W713 16:29:59.000147340 ToKernelNpu.cpp:41] Warning: Device do not support double dtype now, dtype cast replace with float. (function operator())
+[rank1]:[W713 16:29:59.002169890 ToKernelNpu.cpp:41] Warning: Device do not support double dtype now, dtype cast replace with float. (function operator())
+[rank0]:[W713 16:29:59.002169740 ToKernelNpu.cpp:41] Warning: Device do not support double dtype now, dtype cast replace with float. (function operator())
+[rank7]:[W713 16:29:59.002221440 ToKernelNpu.cpp:41] Warning: Device do not support double dtype now, dtype cast replace with float. (function operator())
+(Worker_TP6_EP6 pid=794506) INFO:vllm_ascend.ops.fused_moe.zbal_moe_adapter:[ZBALMoEAdapter] Initializing adapter with rank=6, group_size=8, num_experts=256, hidden_size=4096, low_latency_mode=False
+(Worker_TP7_EP7 pid=794565) INFO:vllm_ascend.ops.fused_moe.zbal_moe_adapter:[ZBALMoEAdapter] Initializing adapter with rank=7, group_size=8, num_experts=256, hidden_size=4096, low_latency_mode=False
+(Worker_TP2_EP2 pid=794270) INFO:vllm_ascend.ops.fused_moe.zbal_moe_adapter:[ZBALMoEAdapter] Initializing adapter with rank=2, group_size=8, num_experts=256, hidden_size=4096, low_latency_mode=False
+(Worker_TP3_EP3 pid=794329) INFO:vllm_ascend.ops.fused_moe.zbal_moe_adapter:[ZBALMoEAdapter] Initializing adapter with rank=3, group_size=8, num_experts=256, hidden_size=4096, low_latency_mode=False
+(Worker_TP4_EP4 pid=794388) INFO:vllm_ascend.ops.fused_moe.zbal_moe_adapter:[ZBALMoEAdapter] Initializing adapter with rank=4, group_size=8, num_experts=256, hidden_size=4096, low_latency_mode=False
+(Worker_TP0_EP0 pid=794176) INFO:vllm_ascend.ops.fused_moe.zbal_moe_adapter:[ZBALMoEAdapter] Initializing adapter with rank=0, group_size=8, num_experts=256, hidden_size=4096, low_latency_mode=False
+(Worker_TP1_EP1 pid=794213) INFO:vllm_ascend.ops.fused_moe.zbal_moe_adapter:[ZBALMoEAdapter] Initializing adapter with rank=1, group_size=8, num_experts=256, hidden_size=4096, low_latency_mode=False
+(Worker_TP5_EP5 pid=794447) INFO:vllm_ascend.ops.fused_moe.zbal_moe_adapter:[ZBALMoEAdapter] Initializing adapter with rank=5, group_size=8, num_experts=256, hidden_size=4096, low_latency_mode=False
+(Worker_TP0_EP0 pid=794176) /usr/local/python3.11.10/lib/python3.11/site-packages/torch/distributed/c10d_logger.py:83: UserWarning: barrier(): using the device under current context. You can specify `device_id` in `init_process_group` to mute this warning.
+(Worker_TP0_EP0 pid=794176)   return func(*args, **kwargs)
+2026-07-13 16:29:59.492930 ERROR 794565:794565 [ZBAL zbal_communicator.cpp:196 CreateInner] Create communicator failed as there is already one named zbal_0:7:1
+2026-07-13 16:29:59.492925 ERROR 794213:794213 [ZBAL zbal_communicator.cpp:196 CreateInner] Create communicator failed as there is already one named zbal_0:7:1
+2026-07-13 16:29:59.492952 ERROR 794213:794213 [ZBAL zbal_pytorch_process_group.cpp:276 initCommunicator] create comm failed, ret=-16, rank=1, size=8, key=zbal_0:7:1
+2026-07-13 16:29:59.492955 ERROR 794565:794565 [ZBAL zbal_pytorch_process_group.cpp:276 initCommunicator] create comm failed, ret=-16, rank=7, size=8, key=zbal_0:7:1
+2026-07-13 16:29:59.492949 ERROR 794388:794388 [ZBAL zbal_communicator.cpp:196 CreateInner] Create communicator failed as there is already one named zbal_0:7:1
+[init] rank:1, group_name: zbal_0:7:1
+2026-07-13 16:29:59.492969 ERROR 794388:794388 [ZBAL zbal_pytorch_process_group.cpp:276 initCommunicator] create comm failed, ret=-16, rank=4, size=8, key=zbal_0:7:1
+[init] rank:7, group_name: zbal_0:7:1
+[init] rank:4, group_name: zbal_0:7:1
+2026-07-13 16:29:59.492982 ERROR 794329:794329 [ZBAL zbal_communicator.cpp:196 CreateInner] Create communicator failed as there is already one named zbal_0:7:1
+2026-07-13 16:29:59.492994 ERROR 794176:794176 [ZBAL zbal_communicator.cpp:196 CreateInner] Create communicator failed as there is already one named zbal_0:7:1
+2026-07-13 16:29:59.493005 ERROR 794329:794329 [ZBAL zbal_pytorch_process_group.cpp:276 initCommunicator] create comm failed, ret=-16, rank=3, size=8, key=zbal_0:7:1
+2026-07-13 16:29:59.493003 ERROR 794447:794447 [ZBAL zbal_communicator.cpp:196 CreateInner] Create communicator failed as there is already one named zbal_0:7:1
+2026-07-13 16:29:59.493006 ERROR 794506:794506 [ZBAL zbal_communicator.cpp:196 CreateInner] Create communicator failed as there is already one named zbal_0:7:1
+[init] rank:3, group_name: zbal_0:7:1
+2026-07-13 16:29:59.493021 ERROR 794447:794447 [ZBAL zbal_pytorch_process_group.cpp:276 initCommunicator] create comm failed, ret=-16, rank=5, size=8, key=zbal_0:7:1
+2026-07-13 16:29:59.493022 ERROR 794506:794506 [ZBAL zbal_pytorch_process_group.cpp:276 initCommunicator] create comm failed, ret=-16, rank=6, size=8, key=zbal_0:7:1
+2026-07-13 16:29:59.493020 ERROR 794270:794270 [ZBAL zbal_communicator.cpp:196 CreateInner] Create communicator failed as there is already one named zbal_0:7:1
+[init] rank:5, group_name: zbal_0:7:1
+[init] rank:6, group_name: zbal_0:7:1
+2026-07-13 16:29:59.493035 ERROR 794270:794270 [ZBAL zbal_pytorch_process_group.cpp:276 initCommunicator] create comm failed, ret=-16, rank=2, size=8, key=zbal_0:7:1
+[init] rank:2, group_name: zbal_0:7:1
+(Worker_TP7_EP7 pid=794565) INFO:vllm_ascend.ops.fused_moe.zbal_moe_adapter:[ZBALMoEAdapter] Adapter initialized successfully
+(Worker_TP1_EP1 pid=794213) INFO:vllm_ascend.ops.fused_moe.zbal_moe_adapter:[ZBALMoEAdapter] Adapter initialized successfully
+(Worker_TP4_EP4 pid=794388) INFO:vllm_ascend.ops.fused_moe.zbal_moe_adapter:[ZBALMoEAdapter] Adapter initialized successfully
+2026-07-13 16:29:59.493092 ERROR 794176:794176 [ZBAL zbal_pytorch_process_group.cpp:276 initCommunicator] create comm failed, ret=-16, rank=0, size=8, key=zbal_0:7:1
+[init] rank:0, group_name: zbal_0:7:1
+(Worker_TP3_EP3 pid=794329) INFO:vllm_ascend.ops.fused_moe.zbal_moe_adapter:[ZBALMoEAdapter] Adapter initialized successfully
+(Worker_TP6_EP6 pid=794506) INFO:vllm_ascend.ops.fused_moe.zbal_moe_adapter:[ZBALMoEAdapter] Adapter initialized successfully
+(Worker_TP2_EP2 pid=794270) INFO:vllm_ascend.ops.fused_moe.zbal_moe_adapter:[ZBALMoEAdapter] Adapter initialized successfully
+(Worker_TP5_EP5 pid=794447) INFO:vllm_ascend.ops.fused_moe.zbal_moe_adapter:[ZBALMoEAdapter] Adapter initialized successfully
+(Worker_TP0_EP0 pid=794176) INFO:vllm_ascend.ops.fused_moe.zbal_moe_adapter:[ZBALMoEAdapter] Adapter initialized successfully
+(Worker_TP1_EP1 pid=794213) rank_id=1, o_proj_input=tensor([[[ 0.3691,  0.5820,  0.1963,  ..., -0.5664,  0.8906,  0.4844]],
+(Worker_TP1_EP1 pid=794213)
+(Worker_TP1_EP1 pid=794213)         [[ 0.2041, -0.0908,  0.0742,  ..., -0.5234,  0.9062,  0.4453]],
+(Worker_TP1_EP1 pid=794213)
+(Worker_TP1_EP1 pid=794213)         [[ 0.0334, -0.7266, -0.0320,  ..., -0.4551,  0.9336,  0.3789]],
