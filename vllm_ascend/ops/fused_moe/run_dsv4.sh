@@ -23,6 +23,7 @@ D_TENSOR_PARALLEL_SIZE=1
 #export ASCEND_RT_VISIBLE_DEVICES=4,5
 export ASCEND_RT_VISIBLE_DEVICES=8,9,10,11,12,13,14,15
 #export ASCEND_RT_VISIBLE_DEVICES=8,9,10,11,
+export ZBAL_HCCL_OP="broadcast,scatter,reduce_scatter,_reduce_scatter_base,alltoall_base"
 
 export ASCEND_LAUNCH_BLOCKING=1
 export MMC_LOCAL_CONFIG_PATH=/home/p00801009/vllm-ascend/vllm_test/mmc-local.conf
