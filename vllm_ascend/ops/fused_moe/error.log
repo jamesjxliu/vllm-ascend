@@ -1,77 +1,138 @@
-[rank2]:[W713 15:42:55.580030810 NPUPluggableAllocator.cpp:307] Warning: reset_peak_status_fn_ is not define, please set by set_reset_peak_status_fn (function resetPeakStats)
-[rank4]:[W713 15:42:55.663029380 NPUPluggableAllocator.cpp:307] Warning: reset_peak_status_fn_ is not define, please set by set_reset_peak_status_fn (function resetPeakStats)
-(Worker_TP0_EP0 pid=772936) ERROR 07-13 15:42:56 [multiproc_executor.py:870] WorkerProc failed to start.
-(Worker_TP0_EP0 pid=772936) ERROR 07-13 15:42:56 [multiproc_executor.py:870] Traceback (most recent call last):
-(Worker_TP0_EP0 pid=772936) ERROR 07-13 15:42:56 [multiproc_executor.py:870]   File "/usr/local/python3.11.10/lib/python3.11/site-packages/vllm/v1/executor/multiproc_executor.py", line 837, in worker_main
-(Worker_TP0_EP0 pid=772936) ERROR 07-13 15:42:56 [multiproc_executor.py:870]     worker = WorkerProc(*args, **kwargs)
-(Worker_TP0_EP0 pid=772936) ERROR 07-13 15:42:56 [multiproc_executor.py:870]              ^^^^^^^^^^^^^^^^^^^^^^^^^^^
-(Worker_TP0_EP0 pid=772936) ERROR 07-13 15:42:56 [multiproc_executor.py:870]   File "/usr/local/python3.11.10/lib/python3.11/site-packages/vllm/tracing/otel.py", line 178, in sync_wrapper
-(Worker_TP0_EP0 pid=772936) ERROR 07-13 15:42:56 [multiproc_executor.py:870]     return func(*args, **kwargs)
-(Worker_TP0_EP0 pid=772936) ERROR 07-13 15:42:56 [multiproc_executor.py:870]            ^^^^^^^^^^^^^^^^^^^^^
-(Worker_TP0_EP0 pid=772936) ERROR 07-13 15:42:56 [multiproc_executor.py:870]   File "/usr/local/python3.11.10/lib/python3.11/site-packages/vllm/v1/executor/multiproc_executor.py", line 619, in __init__
-(Worker_TP0_EP0 pid=772936) ERROR 07-13 15:42:56 [multiproc_executor.py:870]     self.worker.load_model()
-(Worker_TP0_EP0 pid=772936) ERROR 07-13 15:42:56 [multiproc_executor.py:870]   File "/home/p00801009/vllm-ascend/vllm_ascend/worker/worker.py", line 535, in load_model
-(Worker_TP0_EP0 pid=772936) ERROR 07-13 15:42:56 [multiproc_executor.py:870]     self.model_runner.load_model()
-(Worker_TP0_EP0 pid=772936) ERROR 07-13 15:42:56 [multiproc_executor.py:870]   File "/home/p00801009/vllm-ascend/vllm_ascend/worker/model_runner_v1.py", line 3391, in load_model
-(Worker_TP0_EP0 pid=772936) ERROR 07-13 15:42:56 [multiproc_executor.py:870]     self.model: nn.Module = get_model(vllm_config=self.vllm_config)
-(Worker_TP0_EP0 pid=772936) ERROR 07-13 15:42:56 [multiproc_executor.py:870]                             ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
-(Worker_TP0_EP0 pid=772936) ERROR 07-13 15:42:56 [multiproc_executor.py:870]   File "/usr/local/python3.11.10/lib/python3.11/site-packages/vllm/model_executor/model_loader/__init__.py", line 138, in get_model
-(Worker_TP0_EP0 pid=772936) ERROR 07-13 15:42:56 [multiproc_executor.py:870]     return loader.load_model(
-(Worker_TP0_EP0 pid=772936) ERROR 07-13 15:42:56 [multiproc_executor.py:870]            ^^^^^^^^^^^^^^^^^^
-(Worker_TP0_EP0 pid=772936) ERROR 07-13 15:42:56 [multiproc_executor.py:870]   File "/usr/local/python3.11.10/lib/python3.11/site-packages/vllm/tracing/otel.py", line 178, in sync_wrapper
-(Worker_TP0_EP0 pid=772936) ERROR 07-13 15:42:56 [multiproc_executor.py:870]     return func(*args, **kwargs)
-(Worker_TP0_EP0 pid=772936) ERROR 07-13 15:42:56 [multiproc_executor.py:870]            ^^^^^^^^^^^^^^^^^^^^^
-(Worker_TP0_EP0 pid=772936) ERROR 07-13 15:42:56 [multiproc_executor.py:870]   File "/usr/local/python3.11.10/lib/python3.11/site-packages/vllm/model_executor/model_loader/base_loader.py", line 55, in load_model
-(Worker_TP0_EP0 pid=772936) ERROR 07-13 15:42:56 [multiproc_executor.py:870]     model = initialize_model(
-(Worker_TP0_EP0 pid=772936) ERROR 07-13 15:42:56 [multiproc_executor.py:870]             ^^^^^^^^^^^^^^^^^
-(Worker_TP0_EP0 pid=772936) ERROR 07-13 15:42:56 [multiproc_executor.py:870]   File "/usr/local/python3.11.10/lib/python3.11/site-packages/vllm/tracing/otel.py", line 178, in sync_wrapper
-(Worker_TP0_EP0 pid=772936) ERROR 07-13 15:42:56 [multiproc_executor.py:870]     return func(*args, **kwargs)
-(Worker_TP0_EP0 pid=772936) ERROR 07-13 15:42:56 [multiproc_executor.py:870]            ^^^^^^^^^^^^^^^^^^^^^
-(Worker_TP0_EP0 pid=772936) ERROR 07-13 15:42:56 [multiproc_executor.py:870]   File "/usr/local/python3.11.10/lib/python3.11/site-packages/vllm/model_executor/model_loader/utils.py", line 57, in initialize_model
-(Worker_TP0_EP0 pid=772936) ERROR 07-13 15:42:56 [multiproc_executor.py:870]     model = model_class(vllm_config=vllm_config, prefix=prefix)
-(Worker_TP0_EP0 pid=772936) ERROR 07-13 15:42:56 [multiproc_executor.py:870]             ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
-(Worker_TP0_EP0 pid=772936) ERROR 07-13 15:42:56 [multiproc_executor.py:870]   File "/home/p00801009/vllm-ascend/vllm_ascend/models/deepseek_v4.py", line 1062, in __init__
-(Worker_TP0_EP0 pid=772936) ERROR 07-13 15:42:56 [multiproc_executor.py:870]     self.model = self.model_cls(vllm_config=vllm_config, prefix=maybe_prefix(prefix, "model"))
-(Worker_TP0_EP0 pid=772936) ERROR 07-13 15:42:56 [multiproc_executor.py:870]                  ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
-(Worker_TP0_EP0 pid=772936) ERROR 07-13 15:42:56 [multiproc_executor.py:870]   File "/usr/local/python3.11.10/lib/python3.11/site-packages/vllm/compilation/decorators.py", line 379, in __init__
-(Worker_TP0_EP0 pid=772936) ERROR 07-13 15:42:56 [multiproc_executor.py:870]     old_init(self, *args, **kwargs)
-(Worker_TP0_EP0 pid=772936) ERROR 07-13 15:42:56 [multiproc_executor.py:870]   File "/home/p00801009/vllm-ascend/vllm_ascend/models/deepseek_v4.py", line 901, in __init__
-(Worker_TP0_EP0 pid=772936) ERROR 07-13 15:42:56 [multiproc_executor.py:870]     self.start_layer, self.end_layer, self.layers = make_layers(
-(Worker_TP0_EP0 pid=772936) ERROR 07-13 15:42:56 [multiproc_executor.py:870]                                                     ^^^^^^^^^^^^
-(Worker_TP0_EP0 pid=772936) ERROR 07-13 15:42:56 [multiproc_executor.py:870]   File "/usr/local/python3.11.10/lib/python3.11/site-packages/vllm/model_executor/models/utils.py", line 646, in make_layers
-(Worker_TP0_EP0 pid=772936) ERROR 07-13 15:42:56 [multiproc_executor.py:870]     + get_offloader().wrap_modules(
-(Worker_TP0_EP0 pid=772936) ERROR 07-13 15:42:56 [multiproc_executor.py:870]       ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
-(Worker_TP0_EP0 pid=772936) ERROR 07-13 15:42:56 [multiproc_executor.py:870]   File "/usr/local/python3.11.10/lib/python3.11/site-packages/vllm/model_executor/offloader/base.py", line 104, in wrap_modules
-(Worker_TP0_EP0 pid=772936) ERROR 07-13 15:42:56 [multiproc_executor.py:870]     return list(modules_generator)
-(Worker_TP0_EP0 pid=772936) ERROR 07-13 15:42:56 [multiproc_executor.py:870]            ^^^^^^^^^^^^^^^^^^^^^^^
-(Worker_TP0_EP0 pid=772936) ERROR 07-13 15:42:56 [multiproc_executor.py:870]   File "/usr/local/python3.11.10/lib/python3.11/site-packages/vllm/model_executor/models/utils.py", line 647, in <genexpr>
-(Worker_TP0_EP0 pid=772936) ERROR 07-13 15:42:56 [multiproc_executor.py:870]     layer_fn(prefix=f"{prefix}.{idx}") for idx in range(start_layer, end_layer)
-(Worker_TP0_EP0 pid=772936) ERROR 07-13 15:42:56 [multiproc_executor.py:870]     ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
-(Worker_TP0_EP0 pid=772936) ERROR 07-13 15:42:56 [multiproc_executor.py:870]   File "/home/p00801009/vllm-ascend/vllm_ascend/models/deepseek_v4.py", line 903, in <lambda>
-(Worker_TP0_EP0 pid=772936) ERROR 07-13 15:42:56 [multiproc_executor.py:870]     lambda prefix: DeepseekV2DecoderLayer(vllm_config, prefix, topk_indices_buffer=topk_indices_buffer),
-(Worker_TP0_EP0 pid=772936) ERROR 07-13 15:42:56 [multiproc_executor.py:870]                    ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
-(Worker_TP0_EP0 pid=772936) ERROR 07-13 15:42:56 [multiproc_executor.py:870]   File "/home/p00801009/vllm-ascend/vllm_ascend/models/deepseek_v4.py", line 807, in __init__
-(Worker_TP0_EP0 pid=772936) ERROR 07-13 15:42:56 [multiproc_executor.py:870]     self.mlp = DeepseekV4MoE(
-(Worker_TP0_EP0 pid=772936) ERROR 07-13 15:42:56 [multiproc_executor.py:870]                ^^^^^^^^^^^^^^
-(Worker_TP0_EP0 pid=772936) ERROR 07-13 15:42:56 [multiproc_executor.py:870]   File "/home/p00801009/vllm-ascend/vllm_ascend/models/deepseek_v4.py", line 308, in __init__
-(Worker_TP0_EP0 pid=772936) ERROR 07-13 15:42:56 [multiproc_executor.py:870]     self.experts = FusedMoE(
-(Worker_TP0_EP0 pid=772936) ERROR 07-13 15:42:56 [multiproc_executor.py:870]                    ^^^^^^^^^
-(Worker_TP0_EP0 pid=772936) ERROR 07-13 15:42:56 [multiproc_executor.py:870]   File "/home/p00801009/vllm-ascend/vllm_ascend/ops/fused_moe/fused_moe.py", line 460, in __init__
-(Worker_TP0_EP0 pid=772936) ERROR 07-13 15:42:56 [multiproc_executor.py:870]     setup_moe_comm_method(self.moe_config)
-(Worker_TP0_EP0 pid=772936) ERROR 07-13 15:42:56 [multiproc_executor.py:870]   File "/home/p00801009/vllm-ascend/vllm_ascend/ops/fused_moe/moe_comm_method.py", line 57, in setup_moe_comm_method
-(Worker_TP0_EP0 pid=772936) ERROR 07-13 15:42:56 [multiproc_executor.py:870]     _MoECommMethods[MoECommType.ALLTOALL] = AlltoAllCommImpl(moe_config)
-(Worker_TP0_EP0 pid=772936) ERROR 07-13 15:42:56 [multiproc_executor.py:870]                                             ^^^^^^^^^^^^^^^^^^^^^^^^^^^^
-(Worker_TP0_EP0 pid=772936) ERROR 07-13 15:42:56 [multiproc_executor.py:870]   File "/home/p00801009/vllm-ascend/vllm_ascend/ops/fused_moe/moe_comm_method.py", line 99, in __init__
-(Worker_TP0_EP0 pid=772936) ERROR 07-13 15:42:56 [multiproc_executor.py:870]     self.token_dispatcher = self._get_token_dispatcher()
-(Worker_TP0_EP0 pid=772936) ERROR 07-13 15:42:56 [multiproc_executor.py:870]                             ^^^^^^^^^^^^^^^^^^^^^^^^^^^^
-(Worker_TP0_EP0 pid=772936) ERROR 07-13 15:42:56 [multiproc_executor.py:870]   File "/home/p00801009/vllm-ascend/vllm_ascend/ops/fused_moe/moe_comm_method.py", line 255, in _get_token_dispatcher
-(Worker_TP0_EP0 pid=772936) ERROR 07-13 15:42:56 [multiproc_executor.py:870]     return TokenDispatcherWithAll2AllV(
-(Worker_TP0_EP0 pid=772936) ERROR 07-13 15:42:56 [multiproc_executor.py:870]            ^^^^^^^^^^^^^^^^^^^^^^^^^^^^
-(Worker_TP0_EP0 pid=772936) ERROR 07-13 15:42:56 [multiproc_executor.py:870]   File "/home/p00801009/vllm-ascend/vllm_ascend/ops/fused_moe/token_dispatcher.py", line 458, in __init__
-(Worker_TP0_EP0 pid=772936) ERROR 07-13 15:42:56 [multiproc_executor.py:870]     self.moe_all_to_all_group_name = get_comm_name_from_group(self.ep_group)
-(Worker_TP0_EP0 pid=772936) ERROR 07-13 15:42:56 [multiproc_executor.py:870]                                      ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
-(Worker_TP0_EP0 pid=772936) ERROR 07-13 15:42:56 [multiproc_executor.py:870]   File "/home/p00801009/vllm-ascend/vllm_ascend/distributed/zbal_utils.py", line 184, in get_comm_name_from_group
-(Worker_TP0_EP0 pid=772936) ERROR 07-13 15:42:56 [multiproc_executor.py:870]     return backend.get_zbal_comm_name()
-(Worker_TP0_EP0 pid=772936) ERROR 07-13 15:42:56 [multiproc_executor.py:870]            ^^^^^^^^^^^^^^^^^^^^^^^^^^
-(Worker_TP0_EP0 pid=772936) ERROR 07-13 15:42:56 [multiproc_executor.py:870] AttributeError: 'torch_npu._C._distributed_c10d.ProcessGroupHCCL' object has no attribute 'get_zbal_comm_name'
-[rank1]:[W713 15:42:56.765773800 NPUPluggableAllocator.cpp:307] Warning: reset_peak_status_fn_ is not define, please set by set_reset_peak_status_fn (function resetPeakStats)
+(APIServer pid=774003) INFO 07-13 15:52:28 [launcher.py:46] Route: /v1/completions/render, Methods: POST
+(APIServer pid=774003) INFO:     Started server process [774003]
+(APIServer pid=774003) INFO:     Waiting for application startup.
+(APIServer pid=774003) INFO:     Application startup complete.
+[rank4]:[W713 15:53:25.160415580 ToKernelNpu.cpp:41] Warning: Device do not support double dtype now, dtype cast replace with float. (function operator())
+[rank3]:[W713 15:53:25.160586120 ToKernelNpu.cpp:41] Warning: Device do not support double dtype now, dtype cast replace with float. (function operator())
+[rank2]:[W713 15:53:25.160586320 ToKernelNpu.cpp:41] Warning: Device do not support double dtype now, dtype cast replace with float. (function operator())
+[rank7]:[W713 15:53:25.160634380 ToKernelNpu.cpp:41] Warning: Device do not support double dtype now, dtype cast replace with float. (function operator())
+[rank6]:[W713 15:53:25.160634450 ToKernelNpu.cpp:41] Warning: Device do not support double dtype now, dtype cast replace with float. (function operator())
+[rank5]:[W713 15:53:25.160642860 ToKernelNpu.cpp:41] Warning: Device do not support double dtype now, dtype cast replace with float. (function operator())
+[rank0]:[W713 15:53:25.160686010 ToKernelNpu.cpp:41] Warning: Device do not support double dtype now, dtype cast replace with float. (function operator())
+[rank1]:[W713 15:53:25.160723240 ToKernelNpu.cpp:41] Warning: Device do not support double dtype now, dtype cast replace with float. (function operator())
+(Worker_TP2_EP2 pid=774185) INFO:vllm_ascend.ops.fused_moe.zbal_moe_adapter:[ZBALMoEAdapter] Initializing adapter with rank=2, group_size=8, num_experts=256, hidden_size=4096, low_latency_mode=False
+(Worker_TP0_EP0 pid=774091) INFO:vllm_ascend.ops.fused_moe.zbal_moe_adapter:[ZBALMoEAdapter] Initializing adapter with rank=0, group_size=8, num_experts=256, hidden_size=4096, low_latency_mode=False
+(Worker_TP1_EP1 pid=774128) INFO:vllm_ascend.ops.fused_moe.zbal_moe_adapter:[ZBALMoEAdapter] Initializing adapter with rank=1, group_size=8, num_experts=256, hidden_size=4096, low_latency_mode=False
+(Worker_TP3_EP3 pid=774244) INFO:vllm_ascend.ops.fused_moe.zbal_moe_adapter:[ZBALMoEAdapter] Initializing adapter with rank=3, group_size=8, num_experts=256, hidden_size=4096, low_latency_mode=False
+(Worker_TP6_EP6 pid=774421) INFO:vllm_ascend.ops.fused_moe.zbal_moe_adapter:[ZBALMoEAdapter] Initializing adapter with rank=6, group_size=8, num_experts=256, hidden_size=4096, low_latency_mode=False
+(Worker_TP7_EP7 pid=774480) INFO:vllm_ascend.ops.fused_moe.zbal_moe_adapter:[ZBALMoEAdapter] Initializing adapter with rank=7, group_size=8, num_experts=256, hidden_size=4096, low_latency_mode=False
+(Worker_TP4_EP4 pid=774303) INFO:vllm_ascend.ops.fused_moe.zbal_moe_adapter:[ZBALMoEAdapter] Initializing adapter with rank=4, group_size=8, num_experts=256, hidden_size=4096, low_latency_mode=False
+(Worker_TP5_EP5 pid=774362) INFO:vllm_ascend.ops.fused_moe.zbal_moe_adapter:[ZBALMoEAdapter] Initializing adapter with rank=5, group_size=8, num_experts=256, hidden_size=4096, low_latency_mode=False
+(Worker_TP2_EP2 pid=774185) rank_id=2, o_proj_input=tensor([[[ 0.2773,  0.4395,  0.1475,  ..., -0.2295,  0.3613,  0.1973]],
+(Worker_TP2_EP2 pid=774185)
+(Worker_TP2_EP2 pid=774185)         [[ 0.3496,  0.5195,  0.1836,  ..., -0.3066,  0.8438,  0.2500]],
+(Worker_TP2_EP2 pid=774185)
+(Worker_TP2_EP2 pid=774185)         [[ 0.1406, -0.2559,  0.0457,  ..., -0.2930,  0.9180,  0.2178]],
+(Worker_TP2_EP2 pid=774185)
+(Worker_TP2_EP2 pid=774185)         ...,
+(Worker_TP2_EP2 pid=774185)
+(Worker_TP2_EP2 pid=774185)         [[ 0.0000,  0.0000,  0.0000,  ...,  0.0000,  0.0000,  0.0000]],
+(Worker_TP2_EP2 pid=774185)
+(Worker_TP2_EP2 pid=774185)         [[ 0.0000,  0.0000,  0.0000,  ...,  0.0000,  0.0000,  0.0000]],
+(Worker_TP2_EP2 pid=774185)
+(Worker_TP2_EP2 pid=774185)         [[ 0.0000,  0.0000,  0.0000,  ...,  0.0000,  0.0000,  0.0000]]],
+(Worker_TP2_EP2 pid=774185)        device='npu:2', dtype=torch.bfloat16), o_proj_input.shape=torch.Size([16, 1, 4096]), o_proj_input.data_ptr()=22009558451200
+(Worker_TP2_EP2 pid=774185) get_hccl_comm_name failed 'torch_npu._C._distributed_c10d.ProcessGroupHCCL' object has no attribute 'get_zbal_comm_name'
+(Worker_TP2_EP2 pid=774185) ERROR 07-13 15:53:25 [multiproc_executor.py:962] WorkerProc hit an exception.
+(Worker_TP2_EP2 pid=774185) ERROR 07-13 15:53:25 [multiproc_executor.py:962] Traceback (most recent call last):
+(Worker_TP2_EP2 pid=774185) ERROR 07-13 15:53:25 [multiproc_executor.py:962]   File "/usr/local/python3.11.10/lib/python3.11/site-packages/vllm/v1/executor/multiproc_executor.py", line 957, in worker_busy_loop
+(Worker_TP2_EP2 pid=774185) ERROR 07-13 15:53:25 [multiproc_executor.py:962]     output = func(*args, **kwargs)
+(Worker_TP2_EP2 pid=774185) ERROR 07-13 15:53:25 [multiproc_executor.py:962]              ^^^^^^^^^^^^^^^^^^^^^
+(Worker_TP2_EP2 pid=774185) ERROR 07-13 15:53:25 [multiproc_executor.py:962]   File "/usr/local/python3.11.10/lib/python3.11/site-packages/vllm/v1/worker/worker_base.py", line 337, in execute_model
+(Worker_TP2_EP2 pid=774185) ERROR 07-13 15:53:25 [multiproc_executor.py:962]     return self.worker.execute_model(scheduler_output)
+(Worker_TP2_EP2 pid=774185) ERROR 07-13 15:53:25 [multiproc_executor.py:962]            ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+(Worker_TP2_EP2 pid=774185) ERROR 07-13 15:53:25 [multiproc_executor.py:962]   File "/home/p00801009/vllm-ascend/vllm_ascend/worker/worker.py", line 490, in execute_model
+(Worker_TP2_EP2 pid=774185) ERROR 07-13 15:53:25 [multiproc_executor.py:962]     output = self.model_runner.execute_model(scheduler_output, intermediate_tensors)
+(Worker_TP2_EP2 pid=774185) ERROR 07-13 15:53:25 [multiproc_executor.py:962]              ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+(Worker_TP2_EP2 pid=774185) ERROR 07-13 15:53:25 [multiproc_executor.py:962]   File "/usr/local/python3.11.10/lib/python3.11/site-packages/torch/utils/_contextlib.py", line 124, in decorate_context
+(Worker_TP2_EP2 pid=774185) ERROR 07-13 15:53:25 [multiproc_executor.py:962]     return func(*args, **kwargs)
+(Worker_TP2_EP2 pid=774185) ERROR 07-13 15:53:25 [multiproc_executor.py:962]            ^^^^^^^^^^^^^^^^^^^^^
+(Worker_TP2_EP2 pid=774185) ERROR 07-13 15:53:25 [multiproc_executor.py:962]   File "/home/p00801009/vllm-ascend/vllm_ascend/worker/model_runner_v1.py", line 2031, in execute_model
+(Worker_TP2_EP2 pid=774185) ERROR 07-13 15:53:25 [multiproc_executor.py:962]     hidden_states = self._model_forward(
+(Worker_TP2_EP2 pid=774185) ERROR 07-13 15:53:25 [multiproc_executor.py:962]                     ^^^^^^^^^^^^^^^^^^^^
+(Worker_TP2_EP2 pid=774185) ERROR 07-13 15:53:25 [multiproc_executor.py:962]   File "/home/p00801009/vllm-ascend/vllm_ascend/worker/model_runner_v1.py", line 2546, in _model_forward
+(Worker_TP2_EP2 pid=774185) ERROR 07-13 15:53:25 [multiproc_executor.py:962]     hidden_states = run_model()
+(Worker_TP2_EP2 pid=774185) ERROR 07-13 15:53:25 [multiproc_executor.py:962]                     ^^^^^^^^^^^
+(Worker_TP2_EP2 pid=774185) ERROR 07-13 15:53:25 [multiproc_executor.py:962]   File "/usr/local/python3.11.10/lib/python3.11/site-packages/torch/nn/modules/module.py", line 1776, in _wrapped_call_impl
+(Worker_TP2_EP2 pid=774185) ERROR 07-13 15:53:25 [multiproc_executor.py:962]     return self._call_impl(*args, **kwargs)
+(Worker_TP2_EP2 pid=774185) ERROR 07-13 15:53:25 [multiproc_executor.py:962]            ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+(Worker_TP2_EP2 pid=774185) ERROR 07-13 15:53:25 [multiproc_executor.py:962]   File "/usr/local/python3.11.10/lib/python3.11/site-packages/torch/nn/modules/module.py", line 1787, in _call_impl
+(Worker_TP2_EP2 pid=774185) ERROR 07-13 15:53:25 [multiproc_executor.py:962]     return forward_call(*args, **kwargs)
+(Worker_TP2_EP2 pid=774185) ERROR 07-13 15:53:25 [multiproc_executor.py:962]            ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+(Worker_TP2_EP2 pid=774185) ERROR 07-13 15:53:25 [multiproc_executor.py:962]   File "/home/p00801009/vllm-ascend/vllm_ascend/models/deepseek_v4.py", line 1109, in forward
+(Worker_TP2_EP2 pid=774185) ERROR 07-13 15:53:25 [multiproc_executor.py:962]     hidden_states = self.model(input_ids, positions, intermediate_tensors, inputs_embeds)
+(Worker_TP2_EP2 pid=774185) ERROR 07-13 15:53:25 [multiproc_executor.py:962]                     ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+(Worker_TP2_EP2 pid=774185) ERROR 07-13 15:53:25 [multiproc_executor.py:962]   File "/usr/local/python3.11.10/lib/python3.11/site-packages/vllm/compilation/decorators.py", line 467, in __call__
+(Worker_TP2_EP2 pid=774185) ERROR 07-13 15:53:25 [multiproc_executor.py:962]     return self.forward(*args, **kwargs)
+(Worker_TP2_EP2 pid=774185) ERROR 07-13 15:53:25 [multiproc_executor.py:962]            ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+(Worker_TP2_EP2 pid=774185) ERROR 07-13 15:53:25 [multiproc_executor.py:962]   File "/home/p00801009/vllm-ascend/vllm_ascend/models/deepseek_v4.py", line 978, in forward
+(Worker_TP2_EP2 pid=774185) ERROR 07-13 15:53:25 [multiproc_executor.py:962]     hidden_states, residual = layer(positions, hidden_states, residual, llama_4_scaling)
+(Worker_TP2_EP2 pid=774185) ERROR 07-13 15:53:25 [multiproc_executor.py:962]                               ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+(Worker_TP2_EP2 pid=774185) ERROR 07-13 15:53:25 [multiproc_executor.py:962]   File "/usr/local/python3.11.10/lib/python3.11/site-packages/torch/nn/modules/module.py", line 1776, in _wrapped_call_impl
+(Worker_TP2_EP2 pid=774185) ERROR 07-13 15:53:25 [multiproc_executor.py:962]     return self._call_impl(*args, **kwargs)
+(Worker_TP2_EP2 pid=774185) ERROR 07-13 15:53:25 [multiproc_executor.py:962]            ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+(Worker_TP2_EP2 pid=774185) ERROR 07-13 15:53:25 [multiproc_executor.py:962]   File "/usr/local/python3.11.10/lib/python3.11/site-packages/torch/nn/modules/module.py", line 1787, in _call_impl
+(Worker_TP2_EP2 pid=774185) ERROR 07-13 15:53:25 [multiproc_executor.py:962]     return forward_call(*args, **kwargs)
+(Worker_TP2_EP2 pid=774185) ERROR 07-13 15:53:25 [multiproc_executor.py:962]            ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+(Worker_TP2_EP2 pid=774185) ERROR 07-13 15:53:25 [multiproc_executor.py:962]   File "/home/p00801009/vllm-ascend/vllm_ascend/models/deepseek_v4.py", line 857, in forward
+(Worker_TP2_EP2 pid=774185) ERROR 07-13 15:53:25 [multiproc_executor.py:962]     hidden_states = self.mlp(hidden_states)
+(Worker_TP2_EP2 pid=774185) ERROR 07-13 15:53:25 [multiproc_executor.py:962]                     ^^^^^^^^^^^^^^^^^^^^^^^
+(Worker_TP2_EP2 pid=774185) ERROR 07-13 15:53:25 [multiproc_executor.py:962]   File "/usr/local/python3.11.10/lib/python3.11/site-packages/torch/nn/modules/module.py", line 1776, in _wrapped_call_impl
+(Worker_TP2_EP2 pid=774185) ERROR 07-13 15:53:25 [multiproc_executor.py:962]     return self._call_impl(*args, **kwargs)
+(Worker_TP2_EP2 pid=774185) ERROR 07-13 15:53:25 [multiproc_executor.py:962]            ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+(Worker_TP2_EP2 pid=774185) ERROR 07-13 15:53:25 [multiproc_executor.py:962]   File "/usr/local/python3.11.10/lib/python3.11/site-packages/torch/nn/modules/module.py", line 1787, in _call_impl
+(Worker_TP2_EP2 pid=774185) ERROR 07-13 15:53:25 [multiproc_executor.py:962]     return forward_call(*args, **kwargs)
+(Worker_TP2_EP2 pid=774185) ERROR 07-13 15:53:25 [multiproc_executor.py:962]            ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+(Worker_TP2_EP2 pid=774185) ERROR 07-13 15:53:25 [multiproc_executor.py:962]   File "/home/p00801009/vllm-ascend/vllm_ascend/models/deepseek_v4.py", line 348, in forward
+(Worker_TP2_EP2 pid=774185) ERROR 07-13 15:53:25 [multiproc_executor.py:962]     fused_moe_out = self.experts(hidden_states=hidden_states, router_logits=hidden_states)
+(Worker_TP2_EP2 pid=774185) ERROR 07-13 15:53:25 [multiproc_executor.py:962]                     ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+(Worker_TP2_EP2 pid=774185) ERROR 07-13 15:53:25 [multiproc_executor.py:962]   File "/usr/local/python3.11.10/lib/python3.11/site-packages/torch/nn/modules/module.py", line 1776, in _wrapped_call_impl
+(Worker_TP2_EP2 pid=774185) ERROR 07-13 15:53:25 [multiproc_executor.py:962]     return self._call_impl(*args, **kwargs)
+(Worker_TP2_EP2 pid=774185) ERROR 07-13 15:53:25 [multiproc_executor.py:962]            ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+(Worker_TP2_EP2 pid=774185) ERROR 07-13 15:53:25 [multiproc_executor.py:962]   File "/usr/local/python3.11.10/lib/python3.11/site-packages/torch/nn/modules/module.py", line 1787, in _call_impl
+(Worker_TP2_EP2 pid=774185) ERROR 07-13 15:53:25 [multiproc_executor.py:962]     return forward_call(*args, **kwargs)
+(Worker_TP2_EP2 pid=774185) ERROR 07-13 15:53:25 [multiproc_executor.py:962]            ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+(Worker_TP2_EP2 pid=774185) ERROR 07-13 15:53:25 [multiproc_executor.py:962]   File "/home/p00801009/vllm-ascend/vllm_ascend/ops/fused_moe/fused_moe.py", line 579, in forward
+(Worker_TP2_EP2 pid=774185) ERROR 07-13 15:53:25 [multiproc_executor.py:962]     return self.runner.forward(
+(Worker_TP2_EP2 pid=774185) ERROR 07-13 15:53:25 [multiproc_executor.py:962]            ^^^^^^^^^^^^^^^^^^^^
+(Worker_TP2_EP2 pid=774185) ERROR 07-13 15:53:25 [multiproc_executor.py:962]   File "/usr/local/python3.11.10/lib/python3.11/site-packages/vllm/model_executor/layers/fused_moe/runner/moe_runner.py", line 610, in forward
+(Worker_TP2_EP2 pid=774185) ERROR 07-13 15:53:25 [multiproc_executor.py:962]     result = self._forward_entry(
+(Worker_TP2_EP2 pid=774185) ERROR 07-13 15:53:25 [multiproc_executor.py:962]              ^^^^^^^^^^^^^^^^^^^^
+(Worker_TP2_EP2 pid=774185) ERROR 07-13 15:53:25 [multiproc_executor.py:962]   File "/usr/local/python3.11.10/lib/python3.11/site-packages/torch/_ops.py", line 1209, in __call__
+(Worker_TP2_EP2 pid=774185) ERROR 07-13 15:53:25 [multiproc_executor.py:962]     return self._op(*args, **kwargs)
+(Worker_TP2_EP2 pid=774185) ERROR 07-13 15:53:25 [multiproc_executor.py:962]            ^^^^^^^^^^^^^^^^^^^^^^^^^
+(Worker_TP2_EP2 pid=774185) ERROR 07-13 15:53:25 [multiproc_executor.py:962]   File "/usr/local/python3.11.10/lib/python3.11/site-packages/vllm/model_executor/layers/fused_moe/runner/moe_runner.py", line 134, in _moe_forward_shared
+(Worker_TP2_EP2 pid=774185) ERROR 07-13 15:53:25 [multiproc_executor.py:962]     return layer.runner._forward_impl(
+(Worker_TP2_EP2 pid=774185) ERROR 07-13 15:53:25 [multiproc_executor.py:962]            ^^^^^^^^^^^^^^^^^^^^^^^^^^^
+(Worker_TP2_EP2 pid=774185) ERROR 07-13 15:53:25 [multiproc_executor.py:962]   File "/home/p00801009/vllm-ascend/vllm_ascend/ops/fused_moe/fused_moe.py", line 326, in _forward_impl
+(Worker_TP2_EP2 pid=774185) ERROR 07-13 15:53:25 [multiproc_executor.py:962]     return self.forward_impl(
+(Worker_TP2_EP2 pid=774185) ERROR 07-13 15:53:25 [multiproc_executor.py:962]            ^^^^^^^^^^^^^^^^^^
+(Worker_TP2_EP2 pid=774185) ERROR 07-13 15:53:25 [multiproc_executor.py:962]   File "/home/p00801009/vllm-ascend/vllm_ascend/ops/fused_moe/fused_moe.py", line 314, in forward_impl
+(Worker_TP2_EP2 pid=774185) ERROR 07-13 15:53:25 [multiproc_executor.py:962]     result = layer.shared_forward_impl(hidden_states, router_logits)
+(Worker_TP2_EP2 pid=774185) ERROR 07-13 15:53:25 [multiproc_executor.py:962]              ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+(Worker_TP2_EP2 pid=774185) ERROR 07-13 15:53:25 [multiproc_executor.py:962]   File "/home/p00801009/vllm-ascend/vllm_ascend/ops/fused_moe/fused_moe.py", line 827, in shared_forward_impl
+(Worker_TP2_EP2 pid=774185) ERROR 07-13 15:53:25 [multiproc_executor.py:962]     fused_moe_results = self.forward_impl(
+(Worker_TP2_EP2 pid=774185) ERROR 07-13 15:53:25 [multiproc_executor.py:962]                         ^^^^^^^^^^^^^^^^^^
+(Worker_TP2_EP2 pid=774185) ERROR 07-13 15:53:25 [multiproc_executor.py:962]   File "/home/p00801009/vllm-ascend/vllm_ascend/ops/fused_moe/fused_moe.py", line 661, in forward_impl
+(Worker_TP2_EP2 pid=774185) ERROR 07-13 15:53:25 [multiproc_executor.py:962]     fused_experts_results: FusedExpertsResult = self.quant_method.apply(
+(Worker_TP2_EP2 pid=774185) ERROR 07-13 15:53:25 [multiproc_executor.py:962]                                                 ^^^^^^^^^^^^^^^^^^^^^^^^
+(Worker_TP2_EP2 pid=774185) ERROR 07-13 15:53:25 [multiproc_executor.py:962]   File "/home/p00801009/vllm-ascend/vllm_ascend/quantization/method_adapters.py", line 270, in apply
+(Worker_TP2_EP2 pid=774185) ERROR 07-13 15:53:25 [multiproc_executor.py:962]     return self.quant_method.apply(
+(Worker_TP2_EP2 pid=774185) ERROR 07-13 15:53:25 [multiproc_executor.py:962]            ^^^^^^^^^^^^^^^^^^^^^^^^
+(Worker_TP2_EP2 pid=774185) ERROR 07-13 15:53:25 [multiproc_executor.py:962]   File "/home/p00801009/vllm-ascend/vllm_ascend/quantization/methods/w8a8_dynamic.py", line 324, in apply
+(Worker_TP2_EP2 pid=774185) ERROR 07-13 15:53:25 [multiproc_executor.py:962]     final_hidden_states = moe_comm_method.fused_experts(
+(Worker_TP2_EP2 pid=774185) ERROR 07-13 15:53:25 [multiproc_executor.py:962]                           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+(Worker_TP2_EP2 pid=774185) ERROR 07-13 15:53:25 [multiproc_executor.py:962]   File "/home/p00801009/vllm-ascend/vllm_ascend/ops/fused_moe/moe_comm_method.py", line 153, in fused_experts
+(Worker_TP2_EP2 pid=774185) ERROR 07-13 15:53:25 [multiproc_executor.py:962]     token_dispatch_output = self.token_dispatcher.token_dispatch(token_dispatch_input=token_dispatch_input)
+(Worker_TP2_EP2 pid=774185) ERROR 07-13 15:53:25 [multiproc_executor.py:962]                             ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+(Worker_TP2_EP2 pid=774185) ERROR 07-13 15:53:25 [multiproc_executor.py:962]   File "/home/p00801009/vllm-ascend/vllm_ascend/ops/fused_moe/zbal_moe_comm.py", line 106, in token_dispatch
+(Worker_TP2_EP2 pid=774185) ERROR 07-13 15:53:25 [multiproc_executor.py:962]     self._adapter = ZBALMoEAdapter(
+(Worker_TP2_EP2 pid=774185) ERROR 07-13 15:53:25 [multiproc_executor.py:962]                     ^^^^^^^^^^^^^^^
+(Worker_TP2_EP2 pid=774185) ERROR 07-13 15:53:25 [multiproc_executor.py:962]   File "/home/p00801009/vllm-ascend/vllm_ascend/ops/fused_moe/zbal_moe_adapter.py", line 132, in __init__
+(Worker_TP2_EP2 pid=774185) ERROR 07-13 15:53:25 [multiproc_executor.py:962]     self.buffer = Buffer(
+(Worker_TP2_EP2 pid=774185) ERROR 07-13 15:53:25 [multiproc_executor.py:962]                   ^^^^^^^
+(Worker_TP2_EP2 pid=774185) ERROR 07-13 15:53:25 [multiproc_executor.py:962]   File "/usr/local/python3.11.10/lib/python3.11/site-packages/zbal/zbal_buffer.py", line 75, in __init__
+(Worker_TP2_EP2 pid=774185) ERROR 07-13 15:53:25 [multiproc_executor.py:962]     self.runtime = deepep_adaptor.Buffer(
+(Worker_TP2_EP2 pid=774185) ERROR 07-13 15:53:25 [multiproc_executor.py:962]                    ^^^^^^^^^^^^^^^^^^^^^^
+(Worker_TP2_EP2 pid=774185) ERROR 07-13 15:53:25 [multiproc_executor.py:962] RuntimeError: [ZBAL_/home/l00519189/memory_fabric_1/app/zbal/src/csrc/adaptor/deepep/zbal_deepep.cpp:156] Check failed: !moe_group_name.empty() and moe_group_name.size() < COMM_NAME_LEN. moe_group_name check failed:
+(Worker_TP2_EP2 pid=774185) ERROR 07-13 15:53:25 [multiproc_executor.py:962]
