@@ -1,145 +1,77 @@
-vllm服务日志：
-(APIServer pid=723019) INFO 07-13 12:49:14 [loggers.py:271] Engine 000: Avg prompt throughput: 1.2 tokens/s, Avg generation throughput: 0.1 tokens/s, Running: 1 reqs, Waiting: 0 reqs, GPU KV cache usage: 0.2%, Prefix cache hit rate: 0.0%, External prefix cache hit rate: 0.0%
-(APIServer pid=723019) INFO 07-13 12:49:24 [loggers.py:271] Engine 000: Avg prompt throughput: 0.0 tokens/s, Avg generation throughput: 0.0 tokens/s, Running: 1 reqs, Waiting: 0 reqs, GPU KV cache usage: 0.2%, Prefix cache hit rate: 0.0%, External prefix cache hit rate: 0.0%
-(EngineCore pid=723065) INFO 07-13 12:50:15 [shm_broadcast.py:681] No available shared memory broadcast block found in 60 seconds. This typically happens when some processes are hanging or doing some time-consuming work (e.g. compilation, weight/kv cache quantization).
-(EngineCore pid=723065) INFO 07-13 12:51:15 [shm_broadcast.py:681] No available shared memory broadcast block found in 60 seconds. This typically happens when some processes are hanging or doing some time-consuming work (e.g. compilation, weight/kv cache quantization).
-
-
-此时卡住的进程栈：
-root@localhost:/home/p00801009/vllm-ascend/vllm_test# py-spy dump -p 723486
-Process 723486: VLLM::Worker_TP7_EP7
-Python v3.11.10 (/usr/local/python3.11.10/bin/python3.11)
-
-Thread 723486 (active): "MainThread"
-    get_summarized_data (torch/_tensor_str.py:401)
-    <listcomp> (torch/_tensor_str.py:413)
-    get_summarized_data (torch/_tensor_str.py:413)
-    <listcomp> (torch/_tensor_str.py:411)
-    get_summarized_data (torch/_tensor_str.py:411)
-    _tensor_str (torch/_tensor_str.py:375)
-    _str_intern (torch/_tensor_str.py:643)
-    _str (torch/_tensor_str.py:724)
-    __repr__ (torch/_tensor.py:573)
-    forward (vllm_ascend/attention/context_parallel/dsa_cp.py:995)
-    dsa_forward (vllm_ascend/ops/dsa.py:203)
-    __call__ (torch/_ops.py:1209)
-    forward (vllm_ascend/ops/dsa.py:177)
-    _call_impl (torch/nn/modules/module.py:1787)
-    _wrapped_call_impl (torch/nn/modules/module.py:1776)
-    forward (vllm_ascend/models/deepseek_v4.py:767)
-    _call_impl (torch/nn/modules/module.py:1787)
-    _wrapped_call_impl (torch/nn/modules/module.py:1776)
-    forward (vllm_ascend/models/deepseek_v4.py:852)
-    _call_impl (torch/nn/modules/module.py:1787)
-    _wrapped_call_impl (torch/nn/modules/module.py:1776)
-    forward (vllm_ascend/models/deepseek_v4.py:978)
-    __call__ (vllm/compilation/decorators.py:467)
-    forward (vllm_ascend/models/deepseek_v4.py:1109)
-    _call_impl (torch/nn/modules/module.py:1787)
-    _wrapped_call_impl (torch/nn/modules/module.py:1776)
-    _model_forward (vllm_ascend/worker/model_runner_v1.py:2546)
-    execute_model (vllm_ascend/worker/model_runner_v1.py:2031)
-    decorate_context (torch/utils/_contextlib.py:124)
-    execute_model (vllm_ascend/worker/worker.py:490)
-    execute_model (vllm/v1/worker/worker_base.py:337)
-    worker_busy_loop (vllm/v1/executor/multiproc_executor.py:957)
-    worker_main (vllm/v1/executor/multiproc_executor.py:861)
-    run (multiprocessing/process.py:108)
-    _bootstrap (multiprocessing/process.py:314)
-    _main (multiprocessing/spawn.py:135)
-    spawn_main (multiprocessing/spawn.py:122)
-    <module> (<string>:1)
-Thread 723553 (idle)
-Thread 723554 (idle)
-Thread 723555 (idle)
-Thread 723556 (idle)
-Thread 723557 (idle)
-Thread 723558 (idle)
-Thread 723559 (idle)
-Thread 723560 (idle)
-Thread 723561 (idle): "Thread-1"
-    wait (threading.py:331)
-    wait (threading.py:629)
-    run (tqdm/_monitor.py:60)
-    _bootstrap_inner (threading.py:1045)
-    _bootstrap (threading.py:1002)
-Thread 725543 (idle): "Thread-2"
-    _recv (multiprocessing/connection.py:395)
-    _recv_bytes (multiprocessing/connection.py:430)
-    recv (multiprocessing/connection.py:250)
-    _callmethod (multiprocessing/managers.py:822)
-    get (<string>:2)
-    run (tbe/common/repository_manager/utils/multiprocess_util.py:68)
-    _bootstrap_inner (threading.py:1045)
-    _bootstrap (threading.py:1002)
-Thread 726142 (idle): "QueueFeederThread"
-    wait (threading.py:327)
-    _feed (multiprocessing/queues.py:231)
-    run (threading.py:982)
-    _bootstrap_inner (threading.py:1045)
-    _bootstrap (threading.py:1002)
-Thread 726143 (idle): "QueueFeederThread"
-    wait (threading.py:327)
-    _feed (multiprocessing/queues.py:231)
-    run (threading.py:982)
-    _bootstrap_inner (threading.py:1045)
-    _bootstrap (threading.py:1002)
-Thread 726144 (idle): "QueueFeederThread"
-    wait (threading.py:327)
-    _feed (multiprocessing/queues.py:231)
-    run (threading.py:982)
-    _bootstrap_inner (threading.py:1045)
-    _bootstrap (threading.py:1002)
-Thread 726145 (idle): "QueueFeederThread"
-    wait (threading.py:327)
-    _feed (multiprocessing/queues.py:231)
-    run (threading.py:982)
-    _bootstrap_inner (threading.py:1045)
-    _bootstrap (threading.py:1002)
-Thread 726146 (idle): "QueueFeederThread"
-    wait (threading.py:327)
-    _feed (multiprocessing/queues.py:231)
-    run (threading.py:982)
-    _bootstrap_inner (threading.py:1045)
-    _bootstrap (threading.py:1002)
-Thread 726147 (idle): "QueueFeederThread"
-    wait (threading.py:327)
-    _feed (multiprocessing/queues.py:231)
-    run (threading.py:982)
-    _bootstrap_inner (threading.py:1045)
-    _bootstrap (threading.py:1002)
-Thread 726148 (idle): "QueueFeederThread"
-    wait (threading.py:327)
-    _feed (multiprocessing/queues.py:231)
-    run (threading.py:982)
-    _bootstrap_inner (threading.py:1045)
-    _bootstrap (threading.py:1002)
-Thread 726149 (idle): "QueueFeederThread"
-    wait (threading.py:327)
-    _feed (multiprocessing/queues.py:231)
-    run (threading.py:982)
-    _bootstrap_inner (threading.py:1045)
-    _bootstrap (threading.py:1002)
-Thread 728131 (idle): "WorkerAsyncOutputCopy"
-    wait (threading.py:327)
-    get (queue.py:171)
-    async_output_busy_loop (vllm/v1/executor/multiproc_executor.py:941)
-    run (threading.py:982)
-    _bootstrap_inner (threading.py:1045)
-    _bootstrap (threading.py:1002)
-Thread 728136 (idle): "DeathPipeMonitor"
-    _recv (multiprocessing/connection.py:395)
-    _recv_bytes (multiprocessing/connection.py:430)
-    recv (multiprocessing/connection.py:250)
-    death_pipe_monitor (vllm/v1/executor/multiproc_executor.py:773)
-    run (threading.py:982)
-    _bootstrap_inner (threading.py:1045)
-    _bootstrap (threading.py:1002)
-Thread 728434 (idle): "KVCacheSendingThread"
-    recv_multipart (zmq/sugar/socket.py:799)
-    run_busy_loop (vllm_ascend/distributed/kv_transfer/kv_p2p/mooncake_hybrid_connector.py:261)
-    run (vllm_ascend/distributed/kv_transfer/kv_p2p/mooncake_hybrid_connector.py:248)
-    _bootstrap_inner (threading.py:1045)
-    _bootstrap (threading.py:1002)
-
-
+[rank2]:[W713 15:42:55.580030810 NPUPluggableAllocator.cpp:307] Warning: reset_peak_status_fn_ is not define, please set by set_reset_peak_status_fn (function resetPeakStats)
+[rank4]:[W713 15:42:55.663029380 NPUPluggableAllocator.cpp:307] Warning: reset_peak_status_fn_ is not define, please set by set_reset_peak_status_fn (function resetPeakStats)
+(Worker_TP0_EP0 pid=772936) ERROR 07-13 15:42:56 [multiproc_executor.py:870] WorkerProc failed to start.
+(Worker_TP0_EP0 pid=772936) ERROR 07-13 15:42:56 [multiproc_executor.py:870] Traceback (most recent call last):
+(Worker_TP0_EP0 pid=772936) ERROR 07-13 15:42:56 [multiproc_executor.py:870]   File "/usr/local/python3.11.10/lib/python3.11/site-packages/vllm/v1/executor/multiproc_executor.py", line 837, in worker_main
+(Worker_TP0_EP0 pid=772936) ERROR 07-13 15:42:56 [multiproc_executor.py:870]     worker = WorkerProc(*args, **kwargs)
+(Worker_TP0_EP0 pid=772936) ERROR 07-13 15:42:56 [multiproc_executor.py:870]              ^^^^^^^^^^^^^^^^^^^^^^^^^^^
+(Worker_TP0_EP0 pid=772936) ERROR 07-13 15:42:56 [multiproc_executor.py:870]   File "/usr/local/python3.11.10/lib/python3.11/site-packages/vllm/tracing/otel.py", line 178, in sync_wrapper
+(Worker_TP0_EP0 pid=772936) ERROR 07-13 15:42:56 [multiproc_executor.py:870]     return func(*args, **kwargs)
+(Worker_TP0_EP0 pid=772936) ERROR 07-13 15:42:56 [multiproc_executor.py:870]            ^^^^^^^^^^^^^^^^^^^^^
+(Worker_TP0_EP0 pid=772936) ERROR 07-13 15:42:56 [multiproc_executor.py:870]   File "/usr/local/python3.11.10/lib/python3.11/site-packages/vllm/v1/executor/multiproc_executor.py", line 619, in __init__
+(Worker_TP0_EP0 pid=772936) ERROR 07-13 15:42:56 [multiproc_executor.py:870]     self.worker.load_model()
+(Worker_TP0_EP0 pid=772936) ERROR 07-13 15:42:56 [multiproc_executor.py:870]   File "/home/p00801009/vllm-ascend/vllm_ascend/worker/worker.py", line 535, in load_model
+(Worker_TP0_EP0 pid=772936) ERROR 07-13 15:42:56 [multiproc_executor.py:870]     self.model_runner.load_model()
+(Worker_TP0_EP0 pid=772936) ERROR 07-13 15:42:56 [multiproc_executor.py:870]   File "/home/p00801009/vllm-ascend/vllm_ascend/worker/model_runner_v1.py", line 3391, in load_model
+(Worker_TP0_EP0 pid=772936) ERROR 07-13 15:42:56 [multiproc_executor.py:870]     self.model: nn.Module = get_model(vllm_config=self.vllm_config)
+(Worker_TP0_EP0 pid=772936) ERROR 07-13 15:42:56 [multiproc_executor.py:870]                             ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+(Worker_TP0_EP0 pid=772936) ERROR 07-13 15:42:56 [multiproc_executor.py:870]   File "/usr/local/python3.11.10/lib/python3.11/site-packages/vllm/model_executor/model_loader/__init__.py", line 138, in get_model
+(Worker_TP0_EP0 pid=772936) ERROR 07-13 15:42:56 [multiproc_executor.py:870]     return loader.load_model(
+(Worker_TP0_EP0 pid=772936) ERROR 07-13 15:42:56 [multiproc_executor.py:870]            ^^^^^^^^^^^^^^^^^^
+(Worker_TP0_EP0 pid=772936) ERROR 07-13 15:42:56 [multiproc_executor.py:870]   File "/usr/local/python3.11.10/lib/python3.11/site-packages/vllm/tracing/otel.py", line 178, in sync_wrapper
+(Worker_TP0_EP0 pid=772936) ERROR 07-13 15:42:56 [multiproc_executor.py:870]     return func(*args, **kwargs)
+(Worker_TP0_EP0 pid=772936) ERROR 07-13 15:42:56 [multiproc_executor.py:870]            ^^^^^^^^^^^^^^^^^^^^^
+(Worker_TP0_EP0 pid=772936) ERROR 07-13 15:42:56 [multiproc_executor.py:870]   File "/usr/local/python3.11.10/lib/python3.11/site-packages/vllm/model_executor/model_loader/base_loader.py", line 55, in load_model
+(Worker_TP0_EP0 pid=772936) ERROR 07-13 15:42:56 [multiproc_executor.py:870]     model = initialize_model(
+(Worker_TP0_EP0 pid=772936) ERROR 07-13 15:42:56 [multiproc_executor.py:870]             ^^^^^^^^^^^^^^^^^
+(Worker_TP0_EP0 pid=772936) ERROR 07-13 15:42:56 [multiproc_executor.py:870]   File "/usr/local/python3.11.10/lib/python3.11/site-packages/vllm/tracing/otel.py", line 178, in sync_wrapper
+(Worker_TP0_EP0 pid=772936) ERROR 07-13 15:42:56 [multiproc_executor.py:870]     return func(*args, **kwargs)
+(Worker_TP0_EP0 pid=772936) ERROR 07-13 15:42:56 [multiproc_executor.py:870]            ^^^^^^^^^^^^^^^^^^^^^
+(Worker_TP0_EP0 pid=772936) ERROR 07-13 15:42:56 [multiproc_executor.py:870]   File "/usr/local/python3.11.10/lib/python3.11/site-packages/vllm/model_executor/model_loader/utils.py", line 57, in initialize_model
+(Worker_TP0_EP0 pid=772936) ERROR 07-13 15:42:56 [multiproc_executor.py:870]     model = model_class(vllm_config=vllm_config, prefix=prefix)
+(Worker_TP0_EP0 pid=772936) ERROR 07-13 15:42:56 [multiproc_executor.py:870]             ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+(Worker_TP0_EP0 pid=772936) ERROR 07-13 15:42:56 [multiproc_executor.py:870]   File "/home/p00801009/vllm-ascend/vllm_ascend/models/deepseek_v4.py", line 1062, in __init__
+(Worker_TP0_EP0 pid=772936) ERROR 07-13 15:42:56 [multiproc_executor.py:870]     self.model = self.model_cls(vllm_config=vllm_config, prefix=maybe_prefix(prefix, "model"))
+(Worker_TP0_EP0 pid=772936) ERROR 07-13 15:42:56 [multiproc_executor.py:870]                  ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+(Worker_TP0_EP0 pid=772936) ERROR 07-13 15:42:56 [multiproc_executor.py:870]   File "/usr/local/python3.11.10/lib/python3.11/site-packages/vllm/compilation/decorators.py", line 379, in __init__
+(Worker_TP0_EP0 pid=772936) ERROR 07-13 15:42:56 [multiproc_executor.py:870]     old_init(self, *args, **kwargs)
+(Worker_TP0_EP0 pid=772936) ERROR 07-13 15:42:56 [multiproc_executor.py:870]   File "/home/p00801009/vllm-ascend/vllm_ascend/models/deepseek_v4.py", line 901, in __init__
+(Worker_TP0_EP0 pid=772936) ERROR 07-13 15:42:56 [multiproc_executor.py:870]     self.start_layer, self.end_layer, self.layers = make_layers(
+(Worker_TP0_EP0 pid=772936) ERROR 07-13 15:42:56 [multiproc_executor.py:870]                                                     ^^^^^^^^^^^^
+(Worker_TP0_EP0 pid=772936) ERROR 07-13 15:42:56 [multiproc_executor.py:870]   File "/usr/local/python3.11.10/lib/python3.11/site-packages/vllm/model_executor/models/utils.py", line 646, in make_layers
+(Worker_TP0_EP0 pid=772936) ERROR 07-13 15:42:56 [multiproc_executor.py:870]     + get_offloader().wrap_modules(
+(Worker_TP0_EP0 pid=772936) ERROR 07-13 15:42:56 [multiproc_executor.py:870]       ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+(Worker_TP0_EP0 pid=772936) ERROR 07-13 15:42:56 [multiproc_executor.py:870]   File "/usr/local/python3.11.10/lib/python3.11/site-packages/vllm/model_executor/offloader/base.py", line 104, in wrap_modules
+(Worker_TP0_EP0 pid=772936) ERROR 07-13 15:42:56 [multiproc_executor.py:870]     return list(modules_generator)
+(Worker_TP0_EP0 pid=772936) ERROR 07-13 15:42:56 [multiproc_executor.py:870]            ^^^^^^^^^^^^^^^^^^^^^^^
+(Worker_TP0_EP0 pid=772936) ERROR 07-13 15:42:56 [multiproc_executor.py:870]   File "/usr/local/python3.11.10/lib/python3.11/site-packages/vllm/model_executor/models/utils.py", line 647, in <genexpr>
+(Worker_TP0_EP0 pid=772936) ERROR 07-13 15:42:56 [multiproc_executor.py:870]     layer_fn(prefix=f"{prefix}.{idx}") for idx in range(start_layer, end_layer)
+(Worker_TP0_EP0 pid=772936) ERROR 07-13 15:42:56 [multiproc_executor.py:870]     ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+(Worker_TP0_EP0 pid=772936) ERROR 07-13 15:42:56 [multiproc_executor.py:870]   File "/home/p00801009/vllm-ascend/vllm_ascend/models/deepseek_v4.py", line 903, in <lambda>
+(Worker_TP0_EP0 pid=772936) ERROR 07-13 15:42:56 [multiproc_executor.py:870]     lambda prefix: DeepseekV2DecoderLayer(vllm_config, prefix, topk_indices_buffer=topk_indices_buffer),
+(Worker_TP0_EP0 pid=772936) ERROR 07-13 15:42:56 [multiproc_executor.py:870]                    ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+(Worker_TP0_EP0 pid=772936) ERROR 07-13 15:42:56 [multiproc_executor.py:870]   File "/home/p00801009/vllm-ascend/vllm_ascend/models/deepseek_v4.py", line 807, in __init__
+(Worker_TP0_EP0 pid=772936) ERROR 07-13 15:42:56 [multiproc_executor.py:870]     self.mlp = DeepseekV4MoE(
+(Worker_TP0_EP0 pid=772936) ERROR 07-13 15:42:56 [multiproc_executor.py:870]                ^^^^^^^^^^^^^^
+(Worker_TP0_EP0 pid=772936) ERROR 07-13 15:42:56 [multiproc_executor.py:870]   File "/home/p00801009/vllm-ascend/vllm_ascend/models/deepseek_v4.py", line 308, in __init__
+(Worker_TP0_EP0 pid=772936) ERROR 07-13 15:42:56 [multiproc_executor.py:870]     self.experts = FusedMoE(
+(Worker_TP0_EP0 pid=772936) ERROR 07-13 15:42:56 [multiproc_executor.py:870]                    ^^^^^^^^^
+(Worker_TP0_EP0 pid=772936) ERROR 07-13 15:42:56 [multiproc_executor.py:870]   File "/home/p00801009/vllm-ascend/vllm_ascend/ops/fused_moe/fused_moe.py", line 460, in __init__
+(Worker_TP0_EP0 pid=772936) ERROR 07-13 15:42:56 [multiproc_executor.py:870]     setup_moe_comm_method(self.moe_config)
+(Worker_TP0_EP0 pid=772936) ERROR 07-13 15:42:56 [multiproc_executor.py:870]   File "/home/p00801009/vllm-ascend/vllm_ascend/ops/fused_moe/moe_comm_method.py", line 57, in setup_moe_comm_method
+(Worker_TP0_EP0 pid=772936) ERROR 07-13 15:42:56 [multiproc_executor.py:870]     _MoECommMethods[MoECommType.ALLTOALL] = AlltoAllCommImpl(moe_config)
+(Worker_TP0_EP0 pid=772936) ERROR 07-13 15:42:56 [multiproc_executor.py:870]                                             ^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+(Worker_TP0_EP0 pid=772936) ERROR 07-13 15:42:56 [multiproc_executor.py:870]   File "/home/p00801009/vllm-ascend/vllm_ascend/ops/fused_moe/moe_comm_method.py", line 99, in __init__
+(Worker_TP0_EP0 pid=772936) ERROR 07-13 15:42:56 [multiproc_executor.py:870]     self.token_dispatcher = self._get_token_dispatcher()
+(Worker_TP0_EP0 pid=772936) ERROR 07-13 15:42:56 [multiproc_executor.py:870]                             ^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+(Worker_TP0_EP0 pid=772936) ERROR 07-13 15:42:56 [multiproc_executor.py:870]   File "/home/p00801009/vllm-ascend/vllm_ascend/ops/fused_moe/moe_comm_method.py", line 255, in _get_token_dispatcher
+(Worker_TP0_EP0 pid=772936) ERROR 07-13 15:42:56 [multiproc_executor.py:870]     return TokenDispatcherWithAll2AllV(
+(Worker_TP0_EP0 pid=772936) ERROR 07-13 15:42:56 [multiproc_executor.py:870]            ^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+(Worker_TP0_EP0 pid=772936) ERROR 07-13 15:42:56 [multiproc_executor.py:870]   File "/home/p00801009/vllm-ascend/vllm_ascend/ops/fused_moe/token_dispatcher.py", line 458, in __init__
+(Worker_TP0_EP0 pid=772936) ERROR 07-13 15:42:56 [multiproc_executor.py:870]     self.moe_all_to_all_group_name = get_comm_name_from_group(self.ep_group)
+(Worker_TP0_EP0 pid=772936) ERROR 07-13 15:42:56 [multiproc_executor.py:870]                                      ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+(Worker_TP0_EP0 pid=772936) ERROR 07-13 15:42:56 [multiproc_executor.py:870]   File "/home/p00801009/vllm-ascend/vllm_ascend/distributed/zbal_utils.py", line 184, in get_comm_name_from_group
+(Worker_TP0_EP0 pid=772936) ERROR 07-13 15:42:56 [multiproc_executor.py:870]     return backend.get_zbal_comm_name()
+(Worker_TP0_EP0 pid=772936) ERROR 07-13 15:42:56 [multiproc_executor.py:870]            ^^^^^^^^^^^^^^^^^^^^^^^^^^
+(Worker_TP0_EP0 pid=772936) ERROR 07-13 15:42:56 [multiproc_executor.py:870] AttributeError: 'torch_npu._C._distributed_c10d.ProcessGroupHCCL' object has no attribute 'get_zbal_comm_name'
+[rank1]:[W713 15:42:56.765773800 NPUPluggableAllocator.cpp:307] Warning: reset_peak_status_fn_ is not define, please set by set_reset_peak_status_fn (function resetPeakStats)
