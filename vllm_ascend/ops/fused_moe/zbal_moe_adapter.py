@@ -37,6 +37,49 @@ from vllm_ascend.distributed.zbal_utils import is_zbal_enabled
 
 logger = logging.getLogger(__name__)
 
+# GVA base address threshold (0 means unknown — set after zbal_init).
+# Tensors with data_ptr below this are in DMA VMM; above are in GVA.
+_GVA_BASE_ADDR: int = 0
+
+
+def _set_gva_base_addr():
+    """Try to query GVA base address from zbal runtime."""
+    global _GVA_BASE_ADDR
+    if _GVA_BASE_ADDR != 0:
+        return
+    try:
+        from zbal import get_gva_base_addr
+        _GVA_BASE_ADDR = get_gva_base_addr()
+        logger.info("[ZBAL] GVA base addr: 0x%x", _GVA_BASE_ADDR)
+    except Exception:
+        # zbal might not expose this API; threshold comparison will be skipped.
+        pass
+
+
+def _log_tensor_addrs(tag: str, *tensors):
+    """Log data_ptr of each tensor to diagnose GVA vs DMA VMM placement."""
+    _set_gva_base_addr()
+    parts = []
+    for i, t in enumerate(tensors):
+        if t is None:
+            continue
+        ptr = t.data_ptr()
+        region = "?"
+        if _GVA_BASE_ADDR != 0:
+            region = "GVA" if ptr >= _GVA_BASE_ADDR else "DMA_VMM"
+        parts.append(
+            f"t{i}: ptr=0x{ptr:x} region={region} "
+            f"shape={list(t.shape)} dtype={t.dtype} "
+            f"nbytes={t.numel() * t.element_size()}"
+        )
+    if parts:
+        logger.warning(
+            "[ZBALAddrCheck] %s rank=%s %s",
+            tag,
+            dist.get_rank() if dist.is_initialized() else -1,
+            " | ".join(parts),
+        )
+
 
 class ZBALMoEAdapter:
     """Adapter for ZBAL Buffer's dispatch/combine interfaces.
@@ -152,6 +195,9 @@ class ZBALMoEAdapter:
             allocate_on_comm_stream=allocate_on_comm_stream,
         )
 
+        # Print tensor addresses before dispatch to diagnose GVA/DMA memory issues.
+        _log_tensor_addrs("dispatch_input", x, topk_idx, topk_weights)
+
         # Step 2: Execute dispatch (pass topk_weights so zbal can forward them).
         # ZBAL buffer.dispatch returns 6 values:
         # (recv_x, recv_topk_idx, recv_topk_weights,
@@ -228,6 +274,9 @@ class ZBALMoEAdapter:
 
         config = config or self.combine_config
         handle = handle_dict["handle"]
+
+        # Print tensor addresses before combine to diagnose GVA/DMA memory issues.
+        _log_tensor_addrs("combine_input", x, None, topk_weights)
 
         recv_x, _recv_topk_weights, event = self.buffer.combine(
             x=x,
