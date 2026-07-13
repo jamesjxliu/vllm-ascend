@@ -7,7 +7,7 @@ NIC_NAME="enp194s0f0"
 
 export VLLM_ASCEND_ZBAL_LOCAL_MEM_SIZE=60416
 export VLLM_ASCEND_ZBAL_BOOTSTRAP_URL="tcp://80.5.17.34:16989"
-export VLLM_ASCEND_ZBAL_MOE_ENABLE=0
+export VLLM_ASCEND_ZBAL_MOE_ENABLE=1
 export VLLM_ASCEND_ZBAL_MOE_LOW_LATENCY=0
 export VLLM_ASCEND_ZBAL_MOE_NVL_BYTES=10240
 export VLLM_ASCEND_ZBAL_MOE_RDMA_BYTES=10240
@@ -24,7 +24,7 @@ D_TENSOR_PARALLEL_SIZE=1
 export ASCEND_RT_VISIBLE_DEVICES=8,9,10,11,12,13,14,15
 #export ASCEND_RT_VISIBLE_DEVICES=8,9,10,11,
 
-#export ASCEND_LAUNCH_BLOCKING=1
+export ASCEND_LAUNCH_BLOCKING=1
 export MMC_LOCAL_CONFIG_PATH=/home/p00801009/vllm-ascend/vllm_test/mmc-local.conf
 
 export TASK_QUEUE_ENABLE=1
@@ -81,7 +81,7 @@ KV_CONFIG='{
   "kv_connector_extra_config": {
     "connectors": [
       {
-        "kv_connector": "MooncakeConnectorV1",
+        "kv_connector": "MooncakeHybridConnector",
         "kv_role": "'$KV_ROLE'",
         "kv_port": "'$KV_PORT'",
         "kv_connector_extra_config": {
@@ -94,15 +94,8 @@ KV_CONFIG='{
             "tp_size": '$D_TENSOR_PARALLEL_SIZE'
           }
         }
-      },
-      {
-        "kv_connector": "AscendStoreConnector",
-        "kv_role": "'$KV_ROLE'",
-        "kv_connector_extra_config": {
-          "backend": "memcache",
-          "lookup_rpc_port": "'$LOOKUP_RPC_PORT'"
-        }
       }
+
     ]
   }
 }'
@@ -142,14 +135,15 @@ CMD_ARGS=(
 NEW_ARGS=(
     --port 40060
     --model "$MODEL_PATH" \
-    --max_model_len 133120 \
+    --max_model_len 26624 \
     --max-num-batched-tokens 8192 \
     --served-model-name dsv4 \
-    --gpu-memory-utilization 0.93 \
-    --block-size 128 \
+    --gpu-memory-utilization 0.91 \
+    --block-size 64 \
     --max-num-seqs 32 \
     --data-parallel-size 1 \
     --tensor-parallel-size 8 \
+    --enforce-eager \
     --enable-expert-parallel \
     --tokenizer-mode deepseek_v4 \
     --tool-call-parser deepseek_v4 \
@@ -161,11 +155,12 @@ NEW_ARGS=(
     --speculative-config '{"num_speculative_tokens": 1, "method": "mtp", "enforce_eager": true}' \
     --compilation-config '{"cudagraph_mode": "FULL_DECODE_ONLY"}'\
     --async-scheduling \
+    --no-disable-hybrid-kv-cache-manager \
     --kv-transfer-config "$KV_CONFIG" \
     --additional-config '
     {
         "ascend_compilation_config": {
-            "enable_npugraph_ex": true,
+            "enable_npugraph_ex": false,
             "enable_static_kernel": false
         },
         "enable_cpu_binding": true,
