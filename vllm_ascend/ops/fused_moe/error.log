@@ -1,24 +1,35 @@
-Thread 681884 (idle): "MainThread"
-    dispatch (zbal/zbal_buffer.py:322)
-    dispatch (vllm_ascend/ops/fused_moe/zbal_moe_adapter.py:169)
-    token_dispatch (vllm_ascend/ops/fused_moe/zbal_moe_comm.py:177)
-    fused_experts (vllm_ascend/ops/fused_moe/moe_comm_method.py:153)
-    apply (vllm_ascend/quantization/methods/w8a8_dynamic.py:324)
-    apply (vllm_ascend/quantization/method_adapters.py:270)
-    forward_impl (vllm_ascend/ops/fused_moe/fused_moe.py:661)
-    shared_forward_impl (vllm_ascend/ops/fused_moe/fused_moe.py:827)
-    forward_impl (vllm_ascend/ops/fused_moe/fused_moe.py:314)
-    _forward_impl (vllm_ascend/ops/fused_moe/fused_moe.py:326)
-    _moe_forward_shared (vllm/model_executor/layers/fused_moe/runner/moe_runner.py:134)
+vllm服务日志：
+(APIServer pid=723019) INFO 07-13 12:49:14 [loggers.py:271] Engine 000: Avg prompt throughput: 1.2 tokens/s, Avg generation throughput: 0.1 tokens/s, Running: 1 reqs, Waiting: 0 reqs, GPU KV cache usage: 0.2%, Prefix cache hit rate: 0.0%, External prefix cache hit rate: 0.0%
+(APIServer pid=723019) INFO 07-13 12:49:24 [loggers.py:271] Engine 000: Avg prompt throughput: 0.0 tokens/s, Avg generation throughput: 0.0 tokens/s, Running: 1 reqs, Waiting: 0 reqs, GPU KV cache usage: 0.2%, Prefix cache hit rate: 0.0%, External prefix cache hit rate: 0.0%
+(EngineCore pid=723065) INFO 07-13 12:50:15 [shm_broadcast.py:681] No available shared memory broadcast block found in 60 seconds. This typically happens when some processes are hanging or doing some time-consuming work (e.g. compilation, weight/kv cache quantization).
+(EngineCore pid=723065) INFO 07-13 12:51:15 [shm_broadcast.py:681] No available shared memory broadcast block found in 60 seconds. This typically happens when some processes are hanging or doing some time-consuming work (e.g. compilation, weight/kv cache quantization).
+
+
+此时卡住的进程栈：
+root@localhost:/home/p00801009/vllm-ascend/vllm_test# py-spy dump -p 723486
+Process 723486: VLLM::Worker_TP7_EP7
+Python v3.11.10 (/usr/local/python3.11.10/bin/python3.11)
+
+Thread 723486 (active): "MainThread"
+    get_summarized_data (torch/_tensor_str.py:401)
+    <listcomp> (torch/_tensor_str.py:413)
+    get_summarized_data (torch/_tensor_str.py:413)
+    <listcomp> (torch/_tensor_str.py:411)
+    get_summarized_data (torch/_tensor_str.py:411)
+    _tensor_str (torch/_tensor_str.py:375)
+    _str_intern (torch/_tensor_str.py:643)
+    _str (torch/_tensor_str.py:724)
+    __repr__ (torch/_tensor.py:573)
+    forward (vllm_ascend/attention/context_parallel/dsa_cp.py:995)
+    dsa_forward (vllm_ascend/ops/dsa.py:203)
     __call__ (torch/_ops.py:1209)
-    forward (vllm/model_executor/layers/fused_moe/runner/moe_runner.py:610)
-    forward (vllm_ascend/ops/fused_moe/fused_moe.py:579)
+    forward (vllm_ascend/ops/dsa.py:177)
     _call_impl (torch/nn/modules/module.py:1787)
     _wrapped_call_impl (torch/nn/modules/module.py:1776)
-    forward (vllm_ascend/models/deepseek_v4.py:348)
+    forward (vllm_ascend/models/deepseek_v4.py:767)
     _call_impl (torch/nn/modules/module.py:1787)
     _wrapped_call_impl (torch/nn/modules/module.py:1776)
-    forward (vllm_ascend/models/deepseek_v4.py:857)
+    forward (vllm_ascend/models/deepseek_v4.py:852)
     _call_impl (torch/nn/modules/module.py:1787)
     _wrapped_call_impl (torch/nn/modules/module.py:1776)
     forward (vllm_ascend/models/deepseek_v4.py:978)
@@ -38,6 +49,97 @@ Thread 681884 (idle): "MainThread"
     _main (multiprocessing/spawn.py:135)
     spawn_main (multiprocessing/spawn.py:122)
     <module> (<string>:1)
-Thread 681979 (idle)
-Thread 681980 (idle)
-Thread 681981 (idle)
+Thread 723553 (idle)
+Thread 723554 (idle)
+Thread 723555 (idle)
+Thread 723556 (idle)
+Thread 723557 (idle)
+Thread 723558 (idle)
+Thread 723559 (idle)
+Thread 723560 (idle)
+Thread 723561 (idle): "Thread-1"
+    wait (threading.py:331)
+    wait (threading.py:629)
+    run (tqdm/_monitor.py:60)
+    _bootstrap_inner (threading.py:1045)
+    _bootstrap (threading.py:1002)
+Thread 725543 (idle): "Thread-2"
+    _recv (multiprocessing/connection.py:395)
+    _recv_bytes (multiprocessing/connection.py:430)
+    recv (multiprocessing/connection.py:250)
+    _callmethod (multiprocessing/managers.py:822)
+    get (<string>:2)
+    run (tbe/common/repository_manager/utils/multiprocess_util.py:68)
+    _bootstrap_inner (threading.py:1045)
+    _bootstrap (threading.py:1002)
+Thread 726142 (idle): "QueueFeederThread"
+    wait (threading.py:327)
+    _feed (multiprocessing/queues.py:231)
+    run (threading.py:982)
+    _bootstrap_inner (threading.py:1045)
+    _bootstrap (threading.py:1002)
+Thread 726143 (idle): "QueueFeederThread"
+    wait (threading.py:327)
+    _feed (multiprocessing/queues.py:231)
+    run (threading.py:982)
+    _bootstrap_inner (threading.py:1045)
+    _bootstrap (threading.py:1002)
+Thread 726144 (idle): "QueueFeederThread"
+    wait (threading.py:327)
+    _feed (multiprocessing/queues.py:231)
+    run (threading.py:982)
+    _bootstrap_inner (threading.py:1045)
+    _bootstrap (threading.py:1002)
+Thread 726145 (idle): "QueueFeederThread"
+    wait (threading.py:327)
+    _feed (multiprocessing/queues.py:231)
+    run (threading.py:982)
+    _bootstrap_inner (threading.py:1045)
+    _bootstrap (threading.py:1002)
+Thread 726146 (idle): "QueueFeederThread"
+    wait (threading.py:327)
+    _feed (multiprocessing/queues.py:231)
+    run (threading.py:982)
+    _bootstrap_inner (threading.py:1045)
+    _bootstrap (threading.py:1002)
+Thread 726147 (idle): "QueueFeederThread"
+    wait (threading.py:327)
+    _feed (multiprocessing/queues.py:231)
+    run (threading.py:982)
+    _bootstrap_inner (threading.py:1045)
+    _bootstrap (threading.py:1002)
+Thread 726148 (idle): "QueueFeederThread"
+    wait (threading.py:327)
+    _feed (multiprocessing/queues.py:231)
+    run (threading.py:982)
+    _bootstrap_inner (threading.py:1045)
+    _bootstrap (threading.py:1002)
+Thread 726149 (idle): "QueueFeederThread"
+    wait (threading.py:327)
+    _feed (multiprocessing/queues.py:231)
+    run (threading.py:982)
+    _bootstrap_inner (threading.py:1045)
+    _bootstrap (threading.py:1002)
+Thread 728131 (idle): "WorkerAsyncOutputCopy"
+    wait (threading.py:327)
+    get (queue.py:171)
+    async_output_busy_loop (vllm/v1/executor/multiproc_executor.py:941)
+    run (threading.py:982)
+    _bootstrap_inner (threading.py:1045)
+    _bootstrap (threading.py:1002)
+Thread 728136 (idle): "DeathPipeMonitor"
+    _recv (multiprocessing/connection.py:395)
+    _recv_bytes (multiprocessing/connection.py:430)
+    recv (multiprocessing/connection.py:250)
+    death_pipe_monitor (vllm/v1/executor/multiproc_executor.py:773)
+    run (threading.py:982)
+    _bootstrap_inner (threading.py:1045)
+    _bootstrap (threading.py:1002)
+Thread 728434 (idle): "KVCacheSendingThread"
+    recv_multipart (zmq/sugar/socket.py:799)
+    run_busy_loop (vllm_ascend/distributed/kv_transfer/kv_p2p/mooncake_hybrid_connector.py:261)
+    run (vllm_ascend/distributed/kv_transfer/kv_p2p/mooncake_hybrid_connector.py:248)
+    _bootstrap_inner (threading.py:1045)
+    _bootstrap (threading.py:1002)
+
+
