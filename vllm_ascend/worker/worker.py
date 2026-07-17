@@ -751,8 +751,8 @@ class NPUWorker(WorkerBase):
             lazy_init_zbal_gva_mem(
                 device=torch.device(f"npu:{self.local_rank}"),
                 gpu_id=self.local_rank,
-                world_rank=self.rank,
-                world_size=self.vllm_config.parallel_config.world_size,
+                world_rank=torch.distributed.get_rank(),
+                world_size=torch.distributed.get_world_size(),
                 cpu_group=get_tp_group().cpu_group,
             )
 
