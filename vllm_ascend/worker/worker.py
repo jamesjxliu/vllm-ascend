@@ -32,7 +32,7 @@ from vllm.config import CUDAGraphMode, VllmConfig, set_current_vllm_config
 from vllm.distributed import ensure_model_parallel_initialized, init_distributed_environment
 from vllm.distributed.ec_transfer import ensure_ec_transfer_initialized
 from vllm.distributed.kv_transfer import ensure_kv_transfer_initialized, get_kv_transfer_group, has_kv_transfer_group
-from vllm.distributed.parallel_state import Handle, get_pp_group, get_tp_group
+from vllm.distributed.parallel_state import Handle, get_pp_group, get_tp_group, get_world_group
 from vllm.logger import logger
 from vllm.lora.request import LoRARequest
 from vllm.sequence import IntermediateTensors
@@ -753,7 +753,7 @@ class NPUWorker(WorkerBase):
                 gpu_id=self.local_rank,
                 world_rank=torch.distributed.get_rank(),
                 world_size=torch.distributed.get_world_size(),
-                cpu_group=get_tp_group().cpu_group,
+                cpu_group=get_world_group().cpu_group,
             )
 
     def profile(self, is_start: bool = True, profile_prefix: str | None = None):
