@@ -114,6 +114,34 @@ env_variables: dict[str, Callable[[], Any]] = {
     "VLLM_ASCEND_ENABLE_BATCH_MEMCPY": lambda: os.getenv("VLLM_ASCEND_ENABLE_BATCH_MEMCPY", None),
     # Whether to use MultiBlockPool for KV cache management
     "VLLM_ASCEND_APPLY_DSV4_PATCH": lambda: bool(int(os.getenv("VLLM_ASCEND_APPLY_DSV4_PATCH", "0"))),
+    # ZBAL (Zero Buffer Accelerate Library): NPU-specific communication acceleration
+    # library based on memfabric for unified HBM memory pooling and AIV-driven MTE
+    # operator acceleration. Set to positive value (MB) to enable zbal.
+    # 0 (default): disabled, uses standard HCCL backend.
+    "VLLM_ASCEND_ZBAL_LOCAL_MEM_SIZE": lambda: int(os.getenv("VLLM_ASCEND_ZBAL_LOCAL_MEM_SIZE", "0")),
+    # Optional bootstrap URL for multi-node zbal initialization.
+    # If not set, zbal derives the address from MASTER_ADDR/MASTER_PORT.
+    "VLLM_ASCEND_ZBAL_BOOTSTRAP_URL": lambda: os.getenv("VLLM_ASCEND_ZBAL_BOOTSTRAP_URL", ""),
+    # Whether to enable ZBAL buffer for MoE dispatch/combine communication.
+    # This provides DeepEP-like functionality using ZBAL's high-throughput
+    # intranode all-to-all communication. Requires ZBAL to be enabled
+    # (VLLM_ASCEND_ZBAL_LOCAL_MEM_SIZE > 0).
+    # 0 (default): disabled, uses standard MoE communication methods.
+    # 1: enabled, uses ZBAL Buffer for MoE dispatch/combine.
+    "VLLM_ASCEND_ZBAL_MOE_ENABLE": lambda: bool(int(os.getenv("VLLM_ASCEND_ZBAL_MOE_ENABLE", "0"))),
+    # Whether to use ZBAL low-latency mode for MoE dispatch/combine.
+    # Only effective when VLLM_ASCEND_ZBAL_MOE_ENABLE=1.
+    # 0 (default): use standard dispatch/combine.
+    # 1: use low-latency dispatch/combine for online serving.
+    "VLLM_ASCEND_ZBAL_MOE_LOW_LATENCY": lambda: bool(int(os.getenv("VLLM_ASCEND_ZBAL_MOE_LOW_LATENCY", "0"))),
+    # Buffer size in bytes for ZBAL MoE intranode HCCS communication.
+    # Only effective when VLLM_ASCEND_ZBAL_MOE_ENABLE=1.
+    # 0 (default): use default buffer size.
+    "VLLM_ASCEND_ZBAL_MOE_NVL_BYTES": lambda: int(os.getenv("VLLM_ASCEND_ZBAL_MOE_NVL_BYTES", "0")),
+    # Buffer size in bytes for ZBAL MoE internode RDMA communication.
+    # Only effective when VLLM_ASCEND_ZBAL_MOE_ENABLE=1.
+    # 0 (default): use default buffer size.
+    "VLLM_ASCEND_ZBAL_MOE_RDMA_BYTES": lambda: int(os.getenv("VLLM_ASCEND_ZBAL_MOE_RDMA_BYTES", "0")),
 }
 
 # end-env-vars-definition

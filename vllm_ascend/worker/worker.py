@@ -32,7 +32,7 @@ from vllm.config import CUDAGraphMode, VllmConfig, set_current_vllm_config
 from vllm.distributed import ensure_model_parallel_initialized, init_distributed_environment
 from vllm.distributed.ec_transfer import ensure_ec_transfer_initialized
 from vllm.distributed.kv_transfer import ensure_kv_transfer_initialized, get_kv_transfer_group, has_kv_transfer_group
-from vllm.distributed.parallel_state import Handle, get_pp_group, get_tp_group
+from vllm.distributed.parallel_state import Handle, get_pp_group, get_tp_group, get_world_group
 from vllm.logger import logger
 from vllm.lora.request import LoRARequest
 from vllm.sequence import IntermediateTensors
@@ -53,6 +53,12 @@ from vllm_ascend.batch_invariant import init_batch_invariance
 from vllm_ascend.cpu_binding import bind_cpus
 from vllm_ascend.device_allocator.camem import CaMemAllocator
 from vllm_ascend.distributed.parallel_state import init_ascend_model_parallel
+from vllm_ascend.distributed.zbal_utils import (
+    get_zbal_backend,
+    init_zbal,
+    is_zbal_enabled,
+    lazy_init_zbal_gva_mem,
+)
 from vllm_ascend.ops.triton.triton_utils import init_device_properties_triton
 from vllm_ascend.profiler.torch_npu_profiler import TorchNPUProfilerWrapper
 from vllm_ascend.utils import (
@@ -89,6 +95,16 @@ class NPUWorker(WorkerBase):
         **kwargs,
     ):
         """Initialize the worker for Ascend."""
+        if is_zbal_enabled():
+            world_size = vllm_config.parallel_config.world_size
+            logger.info(
+                "[ZBAL] Initializing zbal: world_size=%s gpu_id=%s rank=%s",
+                world_size,
+                local_rank,
+                rank,
+            )
+            init_zbal()
+
         if not envs_ascend.COMPILE_CUSTOM_KERNELS:
             logger.warning(
                 "COMPILE_CUSTOM_KERNELS is set to False. "
@@ -270,9 +286,12 @@ class NPUWorker(WorkerBase):
         torch.npu.empty_cache()
 
         # take current memory snapshot
+        # Note: in zbal mix-alloc mode, MemorySnapshot.measure has been
+        # patched (via init_zbal → _patch_memory_stats_for_mix_alloc) to
+        # use torch.npu.mem_get_info, so MemorySnapshot() works normally.
         self.init_snapshot = MemorySnapshot()
         self.requested_memory = self.init_snapshot.total_memory * self.cache_config.gpu_memory_utilization
-        if self.init_snapshot.free_memory < self.requested_memory:
+        if not is_zbal_enabled() and self.init_snapshot.free_memory < self.requested_memory:
             GiB = lambda b: round(b / GiB_bytes, 2)
             raise ValueError(
                 f"Free memory on device "
@@ -352,6 +371,42 @@ class NPUWorker(WorkerBase):
                 GiB(kv_cache_memory_bytes),
             )
             return kv_cache_memory_bytes
+
+        # KV cache and GVA heap share the zbal-managed memory pool
+        # (VLLM_ASCEND_ZBAL_LOCAL_MEM_SIZE). The pool is carved into:
+        #   - used (weights loaded before zbal_init, in DMA VMM)
+        #   - KV cache (allocated here, in DMA VMM)
+        #   - GVA heap (allocated in lazy_init_zbal_gva_mem, in SMA/GVA,
+        #     for activations)
+        # KV cache budget = pool * utilization - used.
+        # GVA heap = pool - used_after_kv_cache (computed in
+        # lazy_init_zbal_gva_mem, will consume remaining free space).
+        if is_zbal_enabled():
+            from zbal import is_mix_alloc
+
+            if is_mix_alloc():
+                free_bytes, total_bytes = torch.npu.mem_get_info()
+                pool_bytes = envs_ascend.VLLM_ASCEND_ZBAL_LOCAL_MEM_SIZE * (1024**2)
+                effective_total = min(pool_bytes, total_bytes)
+                requested = int(
+                    effective_total * self.cache_config.gpu_memory_utilization
+                )
+                used_bytes = total_bytes - free_bytes
+                self.available_kv_cache_memory_bytes = max(
+                    requested - used_bytes, 0
+                )
+                logger.info_once(
+                    "Available KV cache memory: %.2f GiB "
+                    "(pool=%.2f GiB, utilization=%.2f, "
+                    "used=%.2f GiB, free=%.2f GiB)",
+                    GiB(self.available_kv_cache_memory_bytes),
+                    GiB(pool_bytes),
+                    self.cache_config.gpu_memory_utilization,
+                    GiB(used_bytes),
+                    GiB(free_bytes),
+                    scope="local",
+                )
+                return self.available_kv_cache_memory_bytes
 
         # Execute a forward pass with dummy inputs to profile the memory usage
         # of the model.
@@ -684,6 +739,23 @@ class NPUWorker(WorkerBase):
         with context:
             self.model_runner.initialize_kv_cache(kv_cache_config)
 
+        # In zbal mix-alloc mode, initialize GVA heap AFTER weights and
+        # KV cache are loaded (they use DMA VMM via dma_malloc). This
+        # ensures activations use GVA (sma_malloc) while weights stay in
+        # DMA VMM, which is required because some operators (e.g.
+        # npu_quant_matmul) do not support GVA addresses for weights.
+        # ProcessGroupZBAL supports delayed initCommunicator, so
+        # collective operations will lazily initialize the communicator
+        # after zbal_bootstrap completes here.
+        if is_zbal_enabled():
+            lazy_init_zbal_gva_mem(
+                device=torch.device(f"npu:{self.local_rank}"),
+                gpu_id=self.local_rank,
+                world_rank=torch.distributed.get_rank(),
+                world_size=torch.distributed.get_world_size(),
+                cpu_group=get_world_group().cpu_group,
+            )
+
     def profile(self, is_start: bool = True, profile_prefix: str | None = None):
         # Check if profiling is enabled (RFC #6954 - align with upstream vLLM)
         if self.profiler_config is None or self.profiler_config.profiler is None:
@@ -735,8 +807,15 @@ class NPUWorker(WorkerBase):
     def _init_worker_distributed_environment(self) -> None:
         """Initialize the distributed environment."""
         init_batch_invariance()
+
+        # NOTE: zbal is initialized in __init__ (before super().__init__())
+        # because switch_to_allocator() must run before the default NPU
+        # allocator is touched by MemorySnapshot().
+
+        backend = get_zbal_backend()
+        logger.info("Using distributed backend: %s", backend)
         init_distributed_environment(
-            self.parallel_config.world_size, self.rank, self.distributed_init_method, self.local_rank, "hccl"
+            self.parallel_config.world_size, self.rank, self.distributed_init_method, self.local_rank, backend
         )
         ensure_model_parallel_initialized(
             self.parallel_config.tensor_parallel_size,

@@ -31,6 +31,7 @@ from vllm.distributed.parallel_state import get_ep_group
 from vllm_ascend.ascend_config import get_ascend_config
 from vllm_ascend.device.device_op import DeviceOperator
 from vllm_ascend.distributed.parallel_state import get_mc2_group
+from vllm_ascend.distributed.zbal_utils import get_comm_name_from_group
 from vllm_ascend.ops.fused_moe.comm_utils import async_all_to_all, gather_from_sequence_parallel_region
 from vllm_ascend.ops.fused_moe.moe_runtime_args import (
     MoEAllGatherCombineMetadata,
@@ -102,10 +103,7 @@ class TokenDispatcherWithMC2(MoETokenDispatcher[MoEMC2CombineMetadata]):
     def __init__(self, **kwargs):
         super().__init__(**kwargs)
         device_group = get_mc2_group().device_group
-        # TODO: Try local_rank = ep_group.rank_in_group
-        local_rank = torch.distributed.get_rank(group=device_group)
-        backend = device_group._get_backend(torch.device("npu"))
-        self.moe_all_to_all_group_name = backend.get_hccl_comm_name(local_rank)
+        self.moe_all_to_all_group_name = get_comm_name_from_group(device_group)
         self.ep_rank_id = get_mc2_group().rank_in_group
         self.ep_world_size = get_mc2_group().world_size
         self.enable_dispatch_v2 = hasattr(torch_npu, "npu_moe_distribute_dispatch_v2")
@@ -457,10 +455,7 @@ class TokenDispatcherWithAll2AllV(MoETokenDispatcher[MoEAllToAllCombineMetadata]
                 "local_expert_indices must be continuous"
             )
 
-        # TODO: Try local_rank = ep_group.rank_in_group
-        local_rank = torch.distributed.get_rank(group=self.ep_group)
-        backend = self.ep_group._get_backend(torch.device("npu"))
-        self.moe_all_to_all_group_name = backend.get_hccl_comm_name(local_rank)
+        self.moe_all_to_all_group_name = get_comm_name_from_group(self.ep_group)
 
     def token_dispatch(
         self,
@@ -470,7 +465,6 @@ class TokenDispatcherWithAll2AllV(MoETokenDispatcher[MoEAllToAllCombineMetadata]
         hidden_states = token_dispatch_input.hidden_states
         topk_weights = token_dispatch_input.topk_weights
         topk_ids = token_dispatch_input.topk_ids
-
         (
             permutated_local_input_tokens,
             reversed_local_input_permutation_mapping,
@@ -490,13 +484,11 @@ class TokenDispatcherWithAll2AllV(MoETokenDispatcher[MoEAllToAllCombineMetadata]
             )
             permute2_ep_all_to_all_handle.wait()
             dynamic_scale.untyped_storage().resize_(0)
-
         _, global_input_tokens, permute1_ep_all_to_all_handle = async_all_to_all(
             permutated_local_input_tokens, output_splits, input_splits, self.ep_group
         )
         permute1_ep_all_to_all_handle.wait()
         permutated_local_input_tokens.untyped_storage().resize_(0)
-
         # Postprocess
         global_input_tokens, dynamic_scale_final, reversed_global_input_permutation_mapping = (
             self._dispatch_postprocess(
@@ -506,7 +498,6 @@ class TokenDispatcherWithAll2AllV(MoETokenDispatcher[MoEAllToAllCombineMetadata]
                 with_quant,
             )
         )
-
         return MoETokenDispatchOutput(
             hidden_states=global_input_tokens,
             dynamic_scale=dynamic_scale_final,

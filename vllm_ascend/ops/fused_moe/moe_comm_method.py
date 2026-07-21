@@ -61,6 +61,12 @@ def setup_moe_comm_method(moe_config):
     else:
         _MoECommMethods[MoECommType.ALLGATHER] = AllGatherCommImpl(moe_config)
 
+    # Register ZBAL MoE communication method when enabled.
+    import vllm_ascend.envs as envs_ascend
+    if envs_ascend.VLLM_ASCEND_ZBAL_MOE_ENABLE and envs_ascend.VLLM_ASCEND_ZBAL_LOCAL_MEM_SIZE > 0:
+        from vllm_ascend.ops.fused_moe.zbal_moe_comm import ZBALCommImpl
+        _MoECommMethods[MoECommType.ZBAL] = ZBALCommImpl(moe_config)
+
 
 def set_gmmswigluquant_method():
     from vllm_ascend.ascend_config import get_ascend_config
