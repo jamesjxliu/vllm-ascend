@@ -449,6 +449,18 @@ class NPUWorker(WorkerBase):
             weight_transfer_engine.shutdown()
 
         if model_runner := getattr(self, "model_runner", None):
+            model = getattr(model_runner, "model", None)
+            if model is not None:
+                for module in model.modules():
+                    pool = getattr(module, "engram_offload_pool", None)
+                    if pool is not None:
+                        for child in module.modules():
+                            if getattr(child, "_offload_pool", None) is pool:
+                                child._offload_pool = None
+                                child.weight = None
+                                child.weight_scale_inv = None
+                        pool.close()
+                        module.engram_offload_pool = None
             shutdown_fn = getattr(model_runner, "shutdown", None)
             if callable(shutdown_fn):
                 shutdown_fn()

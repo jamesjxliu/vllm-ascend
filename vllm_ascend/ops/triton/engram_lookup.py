@@ -18,6 +18,77 @@ def _decode_e8m0(scale):
 
 
 @triton.jit
+def _engram_offload_encode_kernel(
+    ids,
+    owners,
+    encoded,
+    count,
+    size,
+    row_offset,
+    ids_stride,
+    vocab_start,
+    vocab_end,
+    ROWS_PER_OWNER: tl.constexpr,
+    ROWS_PER_SLOT: tl.constexpr,
+    TABLE_OFFSET: tl.constexpr,
+    HEAD_START: tl.constexpr,
+    LOCAL_HEADS: tl.constexpr,
+    BLOCK: tl.constexpr,
+):
+    row = tl.program_id(0) * BLOCK + tl.arange(0, BLOCK)
+    index = row + row_offset
+    source = tl.load(
+        ids + index // LOCAL_HEADS * ids_stride + HEAD_START + index % LOCAL_HEADS,
+        row < size,
+        other=-1,
+    ).to(tl.int64)
+    valid = (source >= vocab_start) & (source < vocab_end)
+    safe_source = tl.where(valid, source, 0)
+    owner = tl.load(owners + safe_source // ROWS_PER_OWNER)
+    zero_owner = tl.load(owners)
+    entry = owner * ROWS_PER_SLOT + TABLE_OFFSET + safe_source % ROWS_PER_OWNER
+    tl.store(encoded + row, tl.where(valid, entry, zero_owner * ROWS_PER_SLOT), row < size)
+    if tl.program_id(0) == 0:
+        tl.store(count, size)
+
+
+@triton.jit
+def _engram_offload_decode_kernel(
+    codes,
+    scales,
+    ids,
+    output,
+    row_offset,
+    ids_stride,
+    vocab_start,
+    vocab_end,
+    CODE_STRIDE: tl.constexpr,
+    SCALE_STRIDE: tl.constexpr,
+    WIDTH: tl.constexpr,
+    GROUP: tl.constexpr,
+    HEAD_START: tl.constexpr,
+    LOCAL_HEADS: tl.constexpr,
+    PAD_HEADS: tl.constexpr,
+    QUANTIZED: tl.constexpr,
+    MXFP8: tl.constexpr,
+):
+    row = tl.program_id(0)
+    index = row + row_offset
+    token = index // LOCAL_HEADS
+    head = index % LOCAL_HEADS
+    source = tl.load(ids + token * ids_stride + HEAD_START + head).to(tl.int64)
+    valid = (source >= vocab_start) & (source < vocab_end)
+    col = tl.arange(0, WIDTH)
+    value = tl.load(codes + row * CODE_STRIDE + col).to(tl.float32)
+    if QUANTIZED:
+        scale = tl.load(scales + row * SCALE_STRIDE + col // GROUP)
+        if MXFP8:
+            scale = _decode_e8m0(scale)
+        value = value * scale
+    tl.store(output + (token * PAD_HEADS + head) * WIDTH + col, tl.where(valid, value, 0).to(tl.bfloat16))
+
+
+@triton.jit
 def _engram_int8_gather_dequant_kernel(
     weight_ptr,
     scale_ptr,
