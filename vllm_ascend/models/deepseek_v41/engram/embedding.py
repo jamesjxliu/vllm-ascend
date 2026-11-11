@@ -14,7 +14,7 @@ storage and lookup; upstream rank selection and hash gathering are reused:
 
 import json
 from pathlib import Path
-from typing import cast
+from typing import TYPE_CHECKING, cast
 
 import torch
 import torch.distributed as dist
@@ -47,6 +47,9 @@ from .parallel import (
     get_engram_dp_size,
 )
 
+if TYPE_CHECKING:
+    from .offload import EngramOffloadPool
+
 
 class AscendParallelEngramEmbedding(ParallelEngramEmbedding):
     """TP(+EDP) head shard with BF16, INT8/FP32 or native MXFP8/E8M0."""
@@ -61,6 +64,7 @@ class AscendParallelEngramEmbedding(ParallelEngramEmbedding):
         cpu_offload: bool = False,
         dp_shared_memory: bool = False,
         storage_dtype: torch.dtype = torch.int8,
+        offload_pool: "EngramOffloadPool | None" = None,
     ) -> None:
         self.storage_dtype = storage_dtype
         if storage_dtype not in (torch.bfloat16, torch.int8, torch.float8_e4m3fn):
@@ -69,14 +73,17 @@ class AscendParallelEngramEmbedding(ParallelEngramEmbedding):
         self.cpu_offload = cpu_offload
         self.layer_hash_index = layer_hash_index
         self._shared_group = None
+        self._offload_pool = offload_pool
         if not all(in_the_same_node_as(get_tp_group().cpu_group)):
             raise ValueError("Ascend Engram requires the TP ranks of one replica to stay on a single node")
         group = get_engram_dp_group()
-        if group is not None and not all(in_the_same_node_as(group.cpu_group)):
+        if offload_pool is None and group is not None and not all(in_the_same_node_as(group.cpu_group)):
             raise ValueError(
                 "Ascend Engram requires all DP replicas to share the same node and shared-memory namespace"
             )
-        if dp_shared_memory:
+        if offload_pool is not None:
+            self.dp_size = 1
+        elif dp_shared_memory:
             if group is None or group.world_size <= 1:
                 raise ValueError("dp_shared_memory needs a node-local sharing group with more than one rank")
             self._shared_group = group
@@ -109,6 +116,11 @@ class AscendParallelEngramEmbedding(ParallelEngramEmbedding):
         self.vocab_start_idx = sum(head_sizes[: self.head_start])
         self.vocab_end_idx = sum(head_sizes[: self.head_start + self.part_n_hash_cols])
         self.part_num_embeddings = self.vocab_end_idx - self.vocab_start_idx
+        self.storage_start_idx, self.storage_end_idx = (
+            offload_pool.owner_range(layer_hash_index)
+            if offload_pool is not None
+            else (self.vocab_start_idx, self.vocab_end_idx)
+        )
         weight, scales = self._allocate_weights()
         self.weight = nn.Parameter(weight, requires_grad=False)
         self.weight_scale_inv = nn.Parameter(scales, requires_grad=False) if scales is not None else None
@@ -138,6 +150,8 @@ class AscendParallelEngramEmbedding(ParallelEngramEmbedding):
         return self.tp_size * self.dp_size, engram_head_shard_rank()
 
     def _allocate_weights(self) -> tuple[torch.Tensor, torch.Tensor | None]:
+        if self._offload_pool is not None:
+            return self._offload_pool.weights(self.layer_hash_index)
         codes_shape = (self.part_num_embeddings, self.dim)
         scales_shape = (self.part_num_embeddings, self.dim // self.block_size)
         device = torch.device("npu", torch.npu.current_device())
@@ -218,6 +232,14 @@ class AscendParallelEngramEmbedding(ParallelEngramEmbedding):
         Shared head slices have one writer per DP x PCP group. The final CPU
         collective synchronizes writes and propagates loading failures.
         """
+        if self._offload_pool is not None:
+            error = None
+            try:
+                self._load_into_storage(model_path, key, chunk_rows)
+            except Exception as exc:  # noqa: BLE001 - report owner load failures to P and D readers
+                error = f"{type(exc).__name__}: {exc}"
+            self._offload_pool.finish_load(self.layer_hash_index, error)
+            return
         if self._shared_group is None:
             self._load_into_storage(model_path, key, chunk_rows)
             return
@@ -264,10 +286,12 @@ class AscendParallelEngramEmbedding(ParallelEngramEmbedding):
         )
 
     def _load_into_storage(self, model_path, key, chunk_rows) -> None:
+        start, end = self.storage_start_idx, self.storage_end_idx
+        if start == end:
+            return
         root = Path(model_path)
         scale_key = key.removesuffix(".weight") + ".scale"
         index = self._checkpoint_index(root, key)
-        start, end = (self.vocab_start_idx, self.vocab_end_idx)
         with safe_open(root / index[key], framework="pt", device="cpu") as file:
             tensor = file.get_slice(key)
             source_dtype = tensor.get_dtype()
@@ -300,7 +324,7 @@ class AscendParallelEngramEmbedding(ParallelEngramEmbedding):
                     scale = sf.get_slice(scale_key)
                     for chunk_start in range(start, end, chunk_rows):
                         stop = min(chunk_start + chunk_rows, end)
-                        offset = chunk_start - self.vocab_start_idx
+                        offset = chunk_start - start
                         target_end = offset + (stop - chunk_start)
                         self.weight.data[offset:target_end].copy_(tensor[chunk_start:stop])
                         self.weight_scale_inv.data[offset:target_end].copy_(scale[chunk_start:stop])
@@ -312,7 +336,7 @@ class AscendParallelEngramEmbedding(ParallelEngramEmbedding):
                     scale = sf.get_slice(scale_key)
                     for chunk_start in range(start, end, chunk_rows):
                         stop = min(chunk_start + chunk_rows, end)
-                        offset = chunk_start - self.vocab_start_idx
+                        offset = chunk_start - start
                         target_end = offset + (stop - chunk_start)
                         values = tensor[chunk_start:stop].float()
                         group_scales = scale[chunk_start:stop].float()
@@ -323,7 +347,7 @@ class AscendParallelEngramEmbedding(ParallelEngramEmbedding):
             else:
                 for chunk_start in range(start, end, chunk_rows):
                     stop = min(chunk_start + chunk_rows, end)
-                    offset = chunk_start - self.vocab_start_idx
+                    offset = chunk_start - start
                     target_end = offset + (stop - chunk_start)
                     codes, scales = quantize_engram_rows(tensor[chunk_start:stop].to(torch.float32))
                     self.weight.data[offset:target_end].copy_(codes)
@@ -373,7 +397,9 @@ class AscendParallelEngramEmbedding(ParallelEngramEmbedding):
         EDP0's ids instead of its own window.
         """
         num_tokens = indices.shape[0]
-        gathered = gather_engram_hashes(indices, dp_shared_memory=self._shared_group is not None)
+        gathered = gather_engram_hashes(
+            indices, dp_shared_memory=self._shared_group is not None or self._offload_pool is not None
+        )
         return self.embed_gathered(gathered, num_tokens)
 
     def lookup(self, indices: torch.Tensor, out: torch.Tensor, background: bool = False) -> None:
@@ -383,6 +409,17 @@ class AscendParallelEngramEmbedding(ParallelEngramEmbedding):
         """
         tokens = indices.shape[0]
         if tokens == 0 or self.part_n_hash_cols == 0:
+            return
+        if self._offload_pool is not None:
+            self._offload_pool.lookup(
+                self.layer_hash_index,
+                indices,
+                out,
+                self.head_start,
+                self.part_n_hash_cols,
+                self.vocab_start_idx,
+                self.vocab_end_idx,
+            )
             return
         launch = dict(
             head_start=self.head_start,

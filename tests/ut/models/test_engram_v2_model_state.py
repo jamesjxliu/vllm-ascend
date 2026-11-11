@@ -565,6 +565,7 @@ def test_graph_producer_device_count_masks_padding_and_idle_ranks(runtime, monke
 
 def test_graph_producer_capability_excludes_slot_cache_and_collectives(runtime, monkeypatch):
     model = make_model()
+    model.engram_offload_pool = None
     model.use_sequence_parallel = False
     model.engram_hash = SimpleNamespace(use_slot_cache=False)
     group = SimpleNamespace(world_size=1)
@@ -585,6 +586,9 @@ def test_graph_producer_capability_excludes_slot_cache_and_collectives(runtime, 
         setattr(owner, field, disabled_value)
         assert not model.can_capture_engram_producer(), field
         setattr(owner, field, old)
+    model.engram_offload_pool = object()
+    model.layers[1].engram.embed_tokens.tp_size = 4
+    assert model.can_capture_engram_producer()
 
 
 def test_mask_wait_is_delayed_past_early_layer_compute(runtime):

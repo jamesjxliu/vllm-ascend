@@ -4,6 +4,7 @@
 
 from __future__ import annotations
 
+import json
 import typing
 from collections.abc import Callable, Iterable
 from contextlib import contextmanager
@@ -62,6 +63,7 @@ from vllm_ascend.attention.dsa_v41 import (
 from vllm_ascend.core.kv_cache_interface import resolve_bounded_replay
 from vllm_ascend.device.device_op import DeviceOperator
 from vllm_ascend.device.hardware_profile import HardwareCapability, get_current_hardware_profile
+from vllm_ascend.distributed.parallel_state import get_global_rank
 from vllm_ascend.models.common.ops.sequence_parallel import (
     sp_all_gather,
     sp_padding_mask,
@@ -95,6 +97,7 @@ from .engram.embedding import (
     preflight_engram_checkpoint,
 )
 from .engram.layer import AscendEngram
+from .engram.offload import EngramOffloadPool
 from .engram.parallel import gather_engram_hashes, resolve_dp_shared_memory
 from .indexer import DeepseekV41Indexer
 
@@ -1050,6 +1053,7 @@ class DeepseekV41Model(nn.Module, EagleModelMixin):
             bool(vllm_config.engram_config and vllm_config.engram_config.dp_shared_memory)
         )
         self.engram_layout = EngramLayout.from_config(config) if self.has_engram else None
+        self.engram_offload_pool = None
         if self.engram_layout is not None:
             # Head buckets use TP x DP x PCP when sharded, or TP alone when host
             # storage is shared across local DP x PCP replicas.
@@ -1062,8 +1066,8 @@ class DeepseekV41Model(nn.Module, EagleModelMixin):
                     self.engram_weight_root, config.engram_layer_ids, AscendParallelEngramEmbedding
                 )
             native_mxfp8 = get_current_hardware_profile().supports(HardwareCapability.ENGRAM_MXFP8)
-            for slot, (layer_id, rows) in enumerate(zip(config.engram_layer_ids, config.engram_num_embeddings)):
-                head_sizes = tuple(size for order in self.engram_layout.primes[slot] for size in order)
+            storage_dtypes = []
+            for layer_id in config.engram_layer_ids:
                 storage_dtype = torch.bfloat16 if vllm_config.quant_config is None else torch.int8
                 if vllm_config.load_config.load_format != "dummy":
                     storage_dtype = engram_storage_dtype(self.engram_weight_root, layer_id)
@@ -1071,14 +1075,32 @@ class DeepseekV41Model(nn.Module, EagleModelMixin):
                         storage_dtype = torch.int8
                 elif native_mxfp8 and vllm_config.quant_config is not None:
                     storage_dtype = torch.float8_e4m3fn
+                storage_dtypes.append(storage_dtype)
+            offload_config = get_ascend_config().engram_offload
+            if offload_config is not None:
+                if len(set(storage_dtypes)) != 1:
+                    raise ValueError("Engram offload requires a uniform storage dtype across tables")
+                self.engram_offload_pool = EngramOffloadPool(
+                    offload_config,
+                    offload_config.rank_offset + get_global_rank(vllm_config.parallel_config),
+                    list(config.engram_num_embeddings),
+                    config.engram_head_dim,
+                    storage_dtypes[0],
+                    torch.device("npu", torch.npu.current_device()),
+                    json.dumps((config.engram_layer_ids, self.engram_layout.primes)),
+                )
+                self.engram_dp_shared_memory = True
+            for slot, (layer_id, rows) in enumerate(zip(config.engram_layer_ids, config.engram_num_embeddings)):
+                head_sizes = tuple(size for order in self.engram_layout.primes[slot] for size in order)
                 embed = AscendParallelEngramEmbedding(
                     rows,
                     config.engram_head_dim,
                     head_sizes,
                     slot,
-                    storage_dtype=storage_dtype,
+                    storage_dtype=storage_dtypes[slot],
                     cpu_offload=cpu_offload,
                     dp_shared_memory=self.engram_dp_shared_memory,
+                    offload_pool=self.engram_offload_pool,
                 )
                 embed.bind_checkpoint(self.engram_weight_root, f"layers.{layer_id}.engram.embed.weight")
                 self.layers[layer_id].engram.embed_tokens = embed
@@ -1291,7 +1313,7 @@ class DeepseekV41Model(nn.Module, EagleModelMixin):
         )
 
     def can_capture_engram_producer(self) -> bool:
-        """MRV2 slotless, local/shared tables need no graph-side collectives."""
+        """MRV2 slotless lookup; MemFabric also supports the TP head gather."""
         return (
             self.has_engram
             and self._engram_overlap_enabled
@@ -1301,7 +1323,7 @@ class DeepseekV41Model(nn.Module, EagleModelMixin):
             and get_pp_group().world_size == 1
             and all(
                 self.layers[layer].engram.embed_tokens.dp_size == 1
-                and self.layers[layer].engram.embed_tokens.tp_size == 1
+                and (self.layers[layer].engram.embed_tokens.tp_size == 1 or self.engram_offload_pool is not None)
                 for layer in self.config.engram_layer_ids
             )
         )
